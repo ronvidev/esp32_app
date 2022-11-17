@@ -109,9 +109,11 @@ class FindDevicesScreen extends StatelessWidget {
                                   return ElevatedButton(
                                     child: const Text('OPEN'),
                                     onPressed: () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                DeviceScreen(device: d))),
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            DeviceScreen(device: d),
+                                      ),
+                                    ),
                                   );
                                 }
                                 return Text(snapshot.data.toString());
@@ -164,4 +166,3 @@ class FindDevicesScreen extends StatelessWidget {
     );
   }
 }
-
