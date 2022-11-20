@@ -5,7 +5,7 @@
 #include <Wire.h>
 
 //BLE server
-#define bleServerName "ESP32_server"
+#define bleDeviceName "ESP32"
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
 float temp;
@@ -13,7 +13,7 @@ float hum;
 
 // Timer variables
 unsigned long lastTime = 0;
-unsigned long timerDelay = 3000;  // 3 seg
+unsigned long timerDelay = 1000;  // 1 seg
 
 bool deviceConnected = false;
 
@@ -32,9 +32,11 @@ long readUltrasonicDistance(int triggerPin, int echoPin) {
   return pulseIn(echoPin, HIGH);
 }
 
-// Distance Characteristic and Descriptor
+// Distance 1 Characteristic
 BLECharacteristic sr04Distance1Characteristics("ca73b3ba-39f6-4ab3-91ae-186dc9577d99", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor bmeHumidityDescriptor(BLEUUID((uint16_t)0x2903));
+
+// Distance 2 Characteristic
+BLECharacteristic sr04Distance2Characteristics("3c49eb0c-abca-40b5-8ebe-368bd46a7e5e", BLECharacteristic::PROPERTY_NOTIFY);
 
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks {
@@ -54,7 +56,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Create the BLE Device
-  BLEDevice::init(bleServerName);
+  BLEDevice::init(bleDeviceName);
 
   // Create the BLE Server
   BLEServer *pServer = BLEDevice::createServer();
@@ -63,10 +65,13 @@ void setup() {
   // Create the BLE Service
   BLEService *sensorService = pServer->createService(SERVICE_UUID);
 
-  // Humidity
+  // Distancia Deposito
   sensorService->addCharacteristic(&sr04Distance1Characteristics);
-  bmeHumidityDescriptor.setValue("BME humidity");
   sr04Distance1Characteristics.addDescriptor(new BLE2902());
+
+  // Distancia Cisterna
+  sensorService->addCharacteristic(&sr04Distance2Characteristics);
+  sr04Distance2Characteristics.addDescriptor(new BLE2902());
 
   // Start the service
   sensorService->start();
@@ -90,6 +95,9 @@ void loop() {
         // Set distance Characteristic value and notify
         sr04Distance1Characteristics.setValue(distanceChar);
         sr04Distance1Characteristics.notify();
+        // Set distance Characteristic value and notify
+        sr04Distance2Characteristics.setValue(distanceChar);
+        sr04Distance2Characteristics.notify();
         // Mostramos la distancia
         Serial.print("Distancia: ");
         Serial.print(distancia);
