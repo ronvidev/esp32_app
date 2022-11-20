@@ -13,15 +13,19 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen> {
   final String serviceUuid = "91bad492-b950-4226-aa2b-4ede9fa42f59";
-  final String characteristicUuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
+  final String characteristicSR04Uuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
   late bool isReady;
-  late Stream<List<int>> stream;
+  late Stream<List<int>> streamSR04;
 
   @override
   void initState() {
     super.initState();
     isReady = false;
-    discoverServices();
+    connectDevice();
+  }
+
+  connectDevice() async {
+    await widget.device.connect().whenComplete(() => discoverServices());
   }
 
   discoverServices() async {
@@ -29,9 +33,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     for (var service in services) {
       if (service.uuid.toString() == serviceUuid) {
         for (var characteristic in service.characteristics) {
-          if (characteristic.uuid.toString() == characteristicUuid) {
+          if (characteristic.uuid.toString() == characteristicSR04Uuid) {
             characteristic.setNotifyValue(!characteristic.isNotifying);
-            stream = characteristic.value;
+            streamSR04 = characteristic.value;
 
             setState(() {
               isReady = true;
@@ -44,6 +48,55 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   _dataParser(List<int> dataFromDevice) {
     return utf8.decode(dataFromDevice);
+  }
+
+  _waiting() {
+    return const Center(
+      child: Text('Cargando...', style: TextStyle(fontSize: 24.0)),
+    );
+  }
+
+  _distanciaDeposito(distancia) {
+    return Container(
+      width: double.infinity,
+      // height: 250.0,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.0),
+          gradient: LinearGradient(colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).backgroundColor,
+          ])),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Text(
+                  'Distancia (depósito)',
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10.0,),
+            Text(
+              '$distancia cm',
+              style: const TextStyle(
+                fontSize: 28.0,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -86,26 +139,26 @@ class _DeviceScreenState extends State<DeviceScreen> {
         ],
       ),
       body: !isReady
-          ? const Center(child: Text('waiting...'))
-          : StreamBuilder(
-              stream: stream,
-              builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('error: ${snapshot.error}');
-                }
-                if (snapshot.connectionState == ConnectionState.active) {
-                  var currenValue = _dataParser(snapshot.data!);
-                  return Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Distancia:'),
-                      Text('$currenValue cm'),
-                    ],
-                  ));
-                }
-                return const Text('Check the stream');
-              },
+          ? _waiting()
+          : Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Column(
+                children: [
+                  StreamBuilder(
+                    stream: streamSR04,
+                    builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('error: ${snapshot.error}');
+                      }
+                      if (snapshot.connectionState == ConnectionState.active) {
+                        var currentValue = _dataParser(snapshot.data!);
+                        return _distanciaDeposito(currentValue);
+                      }
+                      return const Text('Check the stream');
+                    },
+                  ),
+                ],
+              ),
             ),
     );
   }

@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
           builder: (c, snapshot) {
             final state = snapshot.data;
             if (state == BluetoothState.on) {
-              return const FindDevicesScreen();
+              return const ConnectToDevice();
             }
             return BluetoothOffScreen(state: state);
           }),
@@ -68,31 +68,20 @@ class BluetoothOffScreen extends StatelessWidget {
   }
 }
 
-class FindDevicesScreen extends StatelessWidget {
-  const FindDevicesScreen({Key? key}) : super(key: key);
+class ConnectToDevice extends StatelessWidget {
+  const ConnectToDevice({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Find Devices'),
-        actions: [
-          ElevatedButton(
-            onPressed: Platform.isAndroid
-                ? () => FlutterBluePlus.instance.turnOff()
-                : null,
-            child: const Text('TURN OFF'),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            StreamBuilder<List<BluetoothDevice>>(
-              stream: Stream.periodic(const Duration(seconds: 2))
-                  .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
-              initialData: const [],
-              builder: (c, snapshot) => Column(
+    return StreamBuilder<List<BluetoothDevice>>(
+      stream: FlutterBluePlus.instance.connectedDevices.asStream(),
+      initialData: const [],
+      builder: (c, snapshot) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('ESP32')),
+          body: Column(
+            children: <Widget>[
+              Column(
                 children: snapshot.data!
                     .map((d) => ListTile(
                           title: Text(d.name),
@@ -119,46 +108,49 @@ class FindDevicesScreen extends StatelessWidget {
                         ))
                     .toList(),
               ),
-            ),
-            StreamBuilder<List<ScanResult>>(
-              stream: FlutterBluePlus.instance.scanResults,
-              initialData: const [],
-              builder: (c, snapshot) => Column(
-                children: snapshot.data!
-                    .map(
-                      (r) => ScanResultTile(
-                        result: r,
-                        onTap: () => Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (context) {
-                          r.device.connect();
-                          return DeviceScreen(device: r.device);
-                        })),
-                      ),
-                    )
-                    .toList(),
+              StreamBuilder<List<ScanResult>>(
+                stream: FlutterBluePlus.instance.scanResults,
+                initialData: const [],
+                builder: (c, snapshot) => Column(
+                  children: snapshot.data!
+                      .map(
+                        (r) {
+                          return ScanResultTile(
+                          result: r,
+                          onTap: () => Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) {
+                            r.device.connect();
+                            return DeviceScreen(device: r.device);
+                          })),
+                        );
+                        },
+                      )
+                      .toList(),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: FlutterBluePlus.instance.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data!) {
-            return FloatingActionButton(
-              onPressed: () => FlutterBluePlus.instance.stopScan(),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.stop),
-            );
-          } else {
-            return FloatingActionButton(
-                child: const Icon(Icons.search),
-                onPressed: () => FlutterBluePlus.instance
-                    .startScan(timeout: const Duration(seconds: 4)));
-          }
-        },
-      ),
+            ],
+          ),
+          floatingActionButton: StreamBuilder<bool>(
+            stream: FlutterBluePlus.instance.isScanning,
+            initialData: false,
+            builder: (c, snapshot) {
+              if (snapshot.data!) {
+                return FloatingActionButton(
+                  onPressed: () => FlutterBluePlus.instance.stopScan(),
+                  backgroundColor: Colors.red,
+                  child: const Icon(Icons.stop),
+                );
+              } else {
+                return FloatingActionButton(
+                  child: const Icon(Icons.search),
+                  onPressed: () => FlutterBluePlus.instance
+                      .startScan(timeout: const Duration(seconds: 4)),
+                );
+              }
+            },
+          ),
+        );
+      },
     );
   }
 }
