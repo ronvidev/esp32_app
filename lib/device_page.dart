@@ -84,7 +84,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10.0,),
+            const SizedBox(height: 10.0),
             Text(
               '$distancia cm',
               style: const TextStyle(
