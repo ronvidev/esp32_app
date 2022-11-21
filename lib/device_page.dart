@@ -13,9 +13,13 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen> {
   final String serviceUuid = "91bad492-b950-4226-aa2b-4ede9fa42f59";
-  final String characteristicSR04Uuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
+  final String charactSR0401Uuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
+  final String charactSR0402Uuid = "3c49eb0c-abca-40b5-8ebe-368bd46a7e5e";
+  final String charactPHUuid = "96f89428-696a-11ed-a1eb-0242ac120002";
   late bool isReady;
-  late Stream<List<int>> streamSR04;
+  late Stream<List<int>> streamSR0401;
+  late Stream<List<int>> streamSR0402;
+  late Stream<List<int>> streamPH;
 
   @override
   void initState() {
@@ -33,13 +37,20 @@ class _DeviceScreenState extends State<DeviceScreen> {
     for (var service in services) {
       if (service.uuid.toString() == serviceUuid) {
         for (var characteristic in service.characteristics) {
-          if (characteristic.uuid.toString() == characteristicSR04Uuid) {
+          if (characteristic.uuid.toString() == charactSR0401Uuid) {
             characteristic.setNotifyValue(!characteristic.isNotifying);
-            streamSR04 = characteristic.value;
-
+            streamSR0401 = characteristic.value;
             setState(() {
               isReady = true;
             });
+          }
+          if (characteristic.uuid.toString() == charactSR0402Uuid) {
+            characteristic.setNotifyValue(!characteristic.isNotifying);
+            streamSR0402 = characteristic.value;
+          }
+          if (characteristic.uuid.toString() == charactPHUuid) {
+            characteristic.setNotifyValue(!characteristic.isNotifying);
+            streamPH = characteristic.value;
           }
         }
       }
@@ -56,44 +67,144 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 
-  _distanciaDeposito(distancia) {
-    return Container(
-      width: double.infinity,
-      // height: 250.0,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          gradient: LinearGradient(colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).backgroundColor,
-          ])),
-      child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Column(
-          // crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              children: const [
+  _nivelDeposito(distancia) {
+    double factDist = 0.0;
+    if (distancia != "") {
+      factDist = (140 - double.parse(distancia)) / 135;
+      if (factDist < 0) {
+        factDist = 0;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: Container(
+        width: double.infinity,
+        // height: 250.0,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).backgroundColor,
+            ])),
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Text(
+                    'Nivel de agua',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+              LayoutBuilder(builder: (context, constraints) {
+                return Container(
+                  height: 20.0,
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).secondaryHeaderColor,
+                      borderRadius: BorderRadius.circular(10.0)),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: constraints.maxWidth * factDist,
+                    decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(10.0)),
+                  ),
+                );
+              })
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _nivelCisterna(distancia) {
+    bool isCorrect = false;
+    bool thereWater = false;
+    if (distancia != "") {
+      if (double.parse(distancia) < 135) {
+        thereWater = true;
+      } else {
+        thereWater = false;
+      }
+      isCorrect = true;
+    }
+    return isCorrect
+        ? Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 36.0, vertical: 5.0),
+            child: Row(
+              children: [
                 Text(
-                  'Distancia (depósito)',
+                  '${thereWater ? "Sí" : "No"} hay agua en la cisterna',
                   style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: thereWater ? Colors.blueAccent : Colors.red,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10.0),
-            Text(
-              '$distancia cm',
-              style: const TextStyle(
-                fontSize: 28.0,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+          )
+        : const SizedBox(height: 31.0);
+  }
+
+  _pH(phValue) {
+    double ph = 0;
+    if(phValue != ""){
+      ph = double.parse(phValue);
+    }
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: Container(
+        width: double.infinity,
+        // height: 250.0,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).backgroundColor,
+            ])),
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Text(
+                    'Nivel de pH',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 10.0),
+              Text(
+                '${ph.ceil()}',
+                style: const TextStyle(
+                  fontSize: 28.0,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -140,25 +251,49 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ),
       body: !isReady
           ? _waiting()
-          : Padding(
-              padding: const EdgeInsets.all(18.0),
-              child: Column(
-                children: [
-                  StreamBuilder(
-                    stream: streamSR04,
-                    builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('error: ${snapshot.error}');
-                      }
-                      if (snapshot.connectionState == ConnectionState.active) {
-                        var currentValue = _dataParser(snapshot.data!);
-                        return _distanciaDeposito(currentValue);
-                      }
-                      return const Text('Check the stream');
-                    },
-                  ),
-                ],
-              ),
+          : Column(
+              children: [
+                StreamBuilder(
+                  stream: streamSR0401,
+                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('error: ${snapshot.error}');
+                    }
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      var currentValue = _dataParser(snapshot.data!);
+                      return _nivelDeposito(currentValue);
+                    }
+                    return const Text('Check the stream');
+                  },
+                ),
+                StreamBuilder(
+                  stream: streamSR0402,
+                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('error: ${snapshot.error}');
+                    }
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      var currentValue = _dataParser(snapshot.data!);
+                      return _nivelCisterna(currentValue);
+                    }
+                    return const Text('Check the stream');
+                  },
+                ),
+                StreamBuilder(
+                  stream: streamPH,
+                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('error: ${snapshot.error}');
+                    }
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      var currentValue = _dataParser(snapshot.data!);
+                      return _pH(currentValue);
+                    }
+                    return const Text('Check the stream');
+                  },
+                ),
+                const Expanded(child: SizedBox())
+              ],
             ),
     );
   }
