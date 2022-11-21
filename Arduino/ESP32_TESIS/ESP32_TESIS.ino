@@ -8,8 +8,11 @@
 #define bleDeviceName "ESP32"
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
-float temp;
-float hum;
+float calibration_value = 20.24 - 0.4;
+int phval = 0;
+unsigned long int avgval;
+int buffer_arr[10];
+float ph_act;
 
 // Timer variables
 unsigned long lastTime = 0;
@@ -84,6 +87,22 @@ void setup() {
 }
 
 void loop() {
+  for (int i = 0; i < 10; i++) {
+    buffer_arr[i] = analogRead(35);
+    delay(30);
+  }
+  avgval = 0;
+  for (int i = 2; i < 8; i++)
+    avgval += buffer_arr[i];
+  float volt = (float)avgval * 3.3 / 4096.0 / 6;
+  Serial.print("Voltage: ");
+  Serial.println(volt);
+  ph_act = -5.70 * volt + calibration_value;
+
+  Serial.print("pH Val: ");
+  Serial.println(ph_act);
+  delay(1000);
+
   if (deviceConnected) {
     if ((millis() - lastTime) > timerDelay) {
       // Read distance
