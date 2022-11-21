@@ -9,8 +9,10 @@
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
 // Alturas de tanque
-#define ALT_MAX_DEPOSIT 15
-#define ALT_MIN_DEPOSIT 135
+#define ALT_MAX_DEPOSIT 5
+#define ALT_MIN_DEPOSIT 25
+
+#define MOTOR 26
 
 // Timer variables
 unsigned long lastTime = 0;
@@ -21,6 +23,7 @@ bool deviceConnected = false;
 static char distance1Char[5];
 static char distance2Char[5];
 static char phChar[5];
+static char turbChar[5];
 
 // Variables de los sensores
 int distDeposit = 0;
@@ -50,6 +53,9 @@ BLECharacteristic sr04Distance2Characteristics("3c49eb0c-abca-40b5-8ebe-368bd46a
 // pH Characteristic
 BLECharacteristic sensorPHCharacteristics("96f89428-696a-11ed-a1eb-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
 
+// pH Characteristic
+BLECharacteristic sensorTurbCharacteristics("0730ee7e-69e9-11ed-a1eb-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer *pServer) {
@@ -63,10 +69,11 @@ class MyServerCallbacks : public BLEServerCallbacks {
 void setup() {
   // Start serial communication
   Serial.begin(115200);
-  Serial2.begin(9600, SERIAL_8N1, 16, 17);
+  Serial2.begin(115200, SERIAL_8N1, 16, 17);
 
-  // Led de prueba
-  pinMode(LED_BUILTIN, OUTPUT);
+  // Salidad del Motor
+  pinMode(MOTOR, OUTPUT);
+  digitalWrite(MOTOR, LOW);
 
   // Create the BLE Device
   BLEDevice::init(bleDeviceName);
@@ -90,6 +97,10 @@ void setup() {
   sensorService->addCharacteristic(&sensorPHCharacteristics);
   sensorPHCharacteristics.addDescriptor(new BLE2902());
 
+  // Turbidez
+  sensorService->addCharacteristic(&sensorTurbCharacteristics);
+  sensorTurbCharacteristics.addDescriptor(new BLE2902());
+
   // Start the service
   sensorService->start();
 
@@ -100,34 +111,42 @@ void setup() {
 }
 
 void loop() {
+  double turb_Value = Serial2.parseFloat();
   double ph_Value = Serial2.parseFloat();
+  // Serial.println(turb_Value);
   if (deviceConnected) {
     if ((millis() - lastTime) > timerDelay) {
       // Leer distancia del deposito
       distDeposit = 0.01723 * readUltrasonicDistance(pinGatillo1, pinEco1);
+      Serial.println(distDeposit);
       if (distDeposit < 500) {
-        // Notify distance reading from HC-SR04
         dtostrf(distDeposit, 6, 2, distance1Char);
+        dtostrf(turb_Value, 3, 2, turbChar);
         dtostrf(ph_Value, 3, 2, phChar);
-        // Set distance Characteristic value and notify
+        // Notify distance 1 reading from HC-SR04
         sr04Distance1Characteristics.setValue(distance1Char);
         sr04Distance1Characteristics.notify();
-        // Set distance Characteristic value and notify
+        // Set turbidez Characteristic value and notify
+        sensorTurbCharacteristics.setValue(turbChar);
+        sensorTurbCharacteristics.notify();
+        // Set ph Characteristic value and notify
         sensorPHCharacteristics.setValue(phChar);
         sensorPHCharacteristics.notify();
-        // Leer distancia dela cisterna
+        // Set distance 2 Characteristic value and notify
         distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
         dtostrf(distCisterna, 6, 2, distance2Char);
-        // Set distance Characteristic value and notify
         sr04Distance2Characteristics.setValue(distance2Char);
         sr04Distance2Characteristics.notify();
-        if (distCisterna < ALT_MIN_DEPOSIT) { // Si la cisterna tiene agua...
+        Serial.println(distCisterna);
+        if (distCisterna < ALT_MIN_DEPOSIT) {   // Si la cisterna tiene agua...
           if (distDeposit < ALT_MAX_DEPOSIT) {  // Si el agua está en el limite superior...
-            digitalWrite(LED_BUILTIN, LOW); // Apagar motor
+            digitalWrite(MOTOR, LOW);           // Apagar motor
           }
           if (distDeposit > ALT_MIN_DEPOSIT) {  // Si el agua está en el limite inferior...
-            digitalWrite(LED_BUILTIN, HIGH); // Enceder motor
+            digitalWrite(MOTOR, HIGH);          // Enceder motor
           }
+        } else {
+          digitalWrite(MOTOR, LOW);  // Apagar motor+
         }
       }
       lastTime = millis();

@@ -1,17 +1,16 @@
 float calibration_value = 21.34;
-int phval = 0; 
 unsigned long int avgval; 
 int buffer_arr[10], temp;
 float ph_act;
-char buffer[20] = "0";
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(A0, INPUT);
-  delay(1000);
+  Serial.begin(115200);
 }
 
 void loop() {
+  int turbVal = analogRead(A1);
+  float voltTurb = turbVal * (5.0 / 1024.0);
+  
   for (int i = 0; i < 10; i++) {
     buffer_arr[i] = analogRead(A0);
     delay(10);
@@ -28,12 +27,9 @@ void loop() {
   avgval = 0;
   for (int i = 2; i < 8; i++)
     avgval += buffer_arr[i];
-  float volt = (float)avgval * 5.0 / 1024 / 6;
-  ph_act = 5.70 * volt - calibration_value;
+  float voltPH = (float)avgval * 5.0 / 1024 / 6;
+  ph_act = 5.70 * voltPH - calibration_value;
 
-  dtostrf(ph_act, 2, 2, buffer);
-  // Serial.print("pH Val: ");
+  Serial.println(voltTurb);
   Serial.println(ph_act);
-  // Serial.println(buffer);
-  // delay(100);
 }

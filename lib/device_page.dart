@@ -16,10 +16,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   final String charactSR0401Uuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
   final String charactSR0402Uuid = "3c49eb0c-abca-40b5-8ebe-368bd46a7e5e";
   final String charactPHUuid = "96f89428-696a-11ed-a1eb-0242ac120002";
+  final String charactTurbUuid = "0730ee7e-69e9-11ed-a1eb-0242ac120002";
   late bool isReady;
   late Stream<List<int>> streamSR0401;
   late Stream<List<int>> streamSR0402;
   late Stream<List<int>> streamPH;
+  late Stream<List<int>> streamTurb;
 
   @override
   void initState() {
@@ -52,6 +54,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
             characteristic.setNotifyValue(!characteristic.isNotifying);
             streamPH = characteristic.value;
           }
+          if (characteristic.uuid.toString() == charactTurbUuid) {
+            characteristic.setNotifyValue(!characteristic.isNotifying);
+            streamTurb = characteristic.value;
+          }
         }
       }
     }
@@ -70,7 +76,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   _nivelDeposito(distancia) {
     double factDist = 0.0;
     if (distancia != "") {
-      factDist = (140 - double.parse(distancia)) / 135;
+      factDist = (27 - double.parse(distancia)) / 27;
       if (factDist < 0) {
         factDist = 0;
       }
@@ -133,7 +139,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     bool isCorrect = false;
     bool thereWater = false;
     if (distancia != "") {
-      if (double.parse(distancia) < 135) {
+      if (double.parse(distancia) < 25) {
         thereWater = true;
       } else {
         thereWater = false;
@@ -164,6 +170,56 @@ class _DeviceScreenState extends State<DeviceScreen> {
     double ph = 0;
     if(phValue != ""){
       ph = double.parse(phValue);
+    }
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: Container(
+        width: double.infinity,
+        // height: 250.0,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).backgroundColor,
+            ])),
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Text(
+                    'Nivel de pH',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+              Text(
+                '${ph.ceil()}',
+                style: const TextStyle(
+                  fontSize: 28.0,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _turb(turbValue) {
+    double ph = 0;
+    if(turbValue != ""){
+      ph = double.parse(turbValue);
     }
     return Padding(
       padding: const EdgeInsets.all(18.0),
@@ -279,20 +335,36 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     return const Text('Check the stream');
                   },
                 ),
-                StreamBuilder(
-                  stream: streamPH,
-                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      var currentValue = _dataParser(snapshot.data!);
-                      return _pH(currentValue);
-                    }
-                    return const Text('Check the stream');
-                  },
+                Row(
+                  children: [
+                    StreamBuilder(
+                      stream: streamPH,
+                      builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                        if (snapshot.hasError) {
+                          return Text('error: ${snapshot.error}');
+                        }
+                        if (snapshot.connectionState == ConnectionState.active) {
+                          var currentValue = _dataParser(snapshot.data!);
+                          return _pH(currentValue);
+                        }
+                        return const Text('Check the stream');
+                      },
+                    ),
+                    StreamBuilder(
+                      stream: streamTurb,
+                      builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                        if (snapshot.hasError) {
+                          return Text('error: ${snapshot.error}');
+                        }
+                        if (snapshot.connectionState == ConnectionState.active) {
+                          var currentValue = _dataParser(snapshot.data!);
+                          return _turb(currentValue);
+                        }
+                        return const Text('Check the stream');
+                      },
+                    ),
+                  ],
                 ),
-                const Expanded(child: SizedBox())
               ],
             ),
     );
