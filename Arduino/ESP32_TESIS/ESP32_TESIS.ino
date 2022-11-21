@@ -8,8 +8,7 @@
 #define bleDeviceName "ESP32"
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
 
-float calibration_value = 20.24 - 0.4;
-int phval = 0;
+float calibration_value = 20.24 - 0.73;
 unsigned long int avgval;
 int buffer_arr[10];
 float ph_act;
@@ -57,6 +56,7 @@ void setup() {
 
   // Led de prueba
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(35, INPUT);
 
   // Create the BLE Device
   BLEDevice::init(bleDeviceName);
@@ -87,14 +87,10 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 10; i++) {
-    buffer_arr[i] = analogRead(35);
-    delay(30);
-  }
-  avgval = 0;
-  for (int i = 2; i < 8; i++)
-    avgval += buffer_arr[i];
-  float volt = (float)avgval * 3.3 / 4096.0 / 6;
+  avgval = analogRead(35);
+  Serial.println(avgval);
+  delay(30);
+  float volt = (float)avgval * 3.3 / 4096.0 / 6.0;
   Serial.print("Voltage: ");
   Serial.println(volt);
   ph_act = -5.70 * volt + calibration_value;
