@@ -16,7 +16,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   final String charactSR0401Uuid = "ca73b3ba-39f6-4ab3-91ae-186dc9577d99";
   final String charactSR0402Uuid = "3c49eb0c-abca-40b5-8ebe-368bd46a7e5e";
   final String charactPHUuid = "96f89428-696a-11ed-a1eb-0242ac120002";
-  final String charactTurbUuid = "0730ee7e-69e9-11ed-a1eb-0242ac120002";
+  final String charactTurbUuid = "cadf63e3-63ea-4626-9667-e2594d0bf4ae";
   late bool isReady;
   late Stream<List<int>> streamSR0401;
   late Stream<List<int>> streamSR0402;
@@ -217,9 +217,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   _turb(turbValue) {
+    print(turbValue);
     double ph = 0;
     if(turbValue != ""){
       ph = double.parse(turbValue);
+      print(ph);
     }
     return Padding(
       padding: const EdgeInsets.all(18.0),
