@@ -26,11 +26,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
   final String charactSR0402Uuid = "3c49eb0c-abca-40b5-8ebe-368bd46a7e5e";
   final String charactPHUuid = "96f89428-696a-11ed-a1eb-0242ac120002";
   final String charactTurbUuid = "cadf63e3-63ea-4626-9667-e2594d0bf4ae";
-  late bool isReady;
   late Stream<List<int>> streamSR0401;
   late Stream<List<int>> streamSR0402;
   late Stream<List<int>> streamPH;
   late Stream<List<int>> streamTurb;
+  late bool isReady;
 
   @override
   void initState() {
@@ -79,7 +79,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   _waiting() {
     return const Center(
-      child: Text('Cargando...', style: TextStyle(fontSize: 24.0)),
+      child: Text('Cargando...', style: TextStyle(fontSize: 20.0)),
     );
   }
 
@@ -93,7 +93,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(18.0),
+      padding: const EdgeInsets.symmetric(vertical: 18.0),
       child: Container(
         width: double.infinity,
         // height: 250.0,
@@ -159,7 +159,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return isCorrect
         ? Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 36.0, vertical: 5.0),
+                const EdgeInsets.symmetric(horizontal: 18.0, vertical: 5.0),
             child: Row(
               children: [
                 Text(
@@ -182,7 +182,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ph = double.parse(phValue);
     }
     return Padding(
-      padding: const EdgeInsets.all(18.0),
+      padding: const EdgeInsets.symmetric(vertical: 18.0),
       child: Container(
         width: double.infinity,
         // height: 250.0,
@@ -232,7 +232,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ph = double.parse(turbValue);
     }
     return Padding(
-      padding: const EdgeInsets.all(18.0),
+      padding: const EdgeInsets.symmetric(vertical: 18.0),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -277,122 +277,146 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).backgroundColor,
-      appBar: AppBar(
-        elevation: 0.0,
-        backgroundColor: Colors.transparent,
-        title: Text(widget.device.name),
-        actions: <Widget>[
-          StreamBuilder<BluetoothDeviceState>(
-            stream: widget.device.state,
-            initialData: BluetoothDeviceState.connecting,
-            builder: (c, snapshot) {
-              VoidCallback? onPressed;
-              String text;
-              switch (snapshot.data) {
-                case BluetoothDeviceState.connected:
-                  onPressed = () {
-                    widget.device.disconnect();
-                    nextScreenReplace(
-                      context,
-                      const ConnectToDevice(),
-                      PageTransitionType.leftToRight,
-                    );
-                  };
-                  text = 'DISCONNECT';
-                  break;
-                case BluetoothDeviceState.disconnected:
-                  onPressed = () => widget.device.connect();
-                  text = 'CONNECT';
-                  break;
-                default:
-                  onPressed = null;
-                  text = snapshot.data.toString().substring(21).toUpperCase();
-                  break;
-              }
-              return TextButton(
-                  onPressed: onPressed,
-                  child: Text(
-                    text,
-                    style: Theme.of(context)
-                        .primaryTextTheme
-                        .button
-                        ?.copyWith(color: Colors.white),
-                  ));
-            },
-          )
-        ],
-      ),
-      body: !isReady
-          ? _waiting()
-          : Column(
+        backgroundColor: Theme.of(context).backgroundColor,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Column(
               children: [
-                StreamBuilder(
-                  stream: streamSR0401,
-                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      var currentValue = _dataParser(snapshot.data!);
-                      return _nivelDeposito(currentValue);
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container();
-                    }
-                    return const Text('Check the stream');
-                  },
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _appBar(),
                 ),
-                StreamBuilder(
-                  stream: streamSR0402,
-                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      var currentValue = _dataParser(snapshot.data!);
-                      return _nivelCisterna(currentValue);
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container();
-                    }
-                    return const Text('Check the stream');
-                  },
-                ),
-                StreamBuilder(
-                  stream: streamPH,
-                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      var currentValue = _dataParser(snapshot.data!);
-                      return _pH(currentValue);
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container();
-                    }
-                    return const Text('Check the stream');
-                  },
-                ),
-                StreamBuilder(
-                  stream: streamTurb,
-                  builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      var currentValue = _dataParser(snapshot.data!);
-                      return _turb(currentValue);
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container();
-                    }
-                    return const Text('Check the stream');
-                  },
-                ),
+                isReady ? _widgetsIoT() : _waiting(),
               ],
             ),
+          ),
+        ));
+  }
+
+  Widget _appBar() {
+    return Row(
+      // crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Icon(Icons.arrow_back_ios),
+        const SizedBox(width: 10.0),
+        const Text(
+          'Depósito de agua',
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const Expanded(child: SizedBox()),
+        StreamBuilder<BluetoothDeviceState>(
+          stream: widget.device.state,
+          initialData: BluetoothDeviceState.connecting,
+          builder: (c, snapshot) {
+            VoidCallback? onPressed;
+            Color color;
+            switch (snapshot.data) {
+              case BluetoothDeviceState.connected:
+                onPressed = () {
+                  widget.device.disconnect();
+                  nextScreenReplace(
+                    context,
+                    const ConnectToDevice(),
+                    PageTransitionType.leftToRight,
+                  );
+                };
+                color = Colors.red;
+                break;
+              case BluetoothDeviceState.disconnected:
+                onPressed = () => widget.device.connect();
+                color = Colors.green;
+                break;
+              default:
+                onPressed = null;
+                color = Colors.white;
+                break;
+            }
+            return IconButton(
+              onPressed: onPressed,
+              icon: Icon(
+                Icons.power_settings_new_rounded,
+                color: color,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _widgetsIoT() {
+    return Column(
+      children: [
+        StreamBuilder(
+          stream: streamSR0401,
+          builder: (context, AsyncSnapshot<List<int>> snapshot) {
+            if (snapshot.hasError) {
+              return Text('error: ${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.active) {
+              var currentValue = _dataParser(snapshot.data!);
+              return _nivelDeposito(currentValue);
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container();
+            }
+            return const Text('Check the stream');
+          },
+        ),
+        StreamBuilder(
+          stream: streamSR0402,
+          builder: (context, AsyncSnapshot<List<int>> snapshot) {
+            if (snapshot.hasError) {
+              return Text('error: ${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.active) {
+              var currentValue = _dataParser(snapshot.data!);
+              return _nivelCisterna(currentValue);
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container();
+            }
+            return const Text('Check the stream');
+          },
+        ),
+        StreamBuilder(
+          stream: streamPH,
+          builder: (context, AsyncSnapshot<List<int>> snapshot) {
+            if (snapshot.hasError) {
+              return Text('error: ${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.active) {
+              var currentValue = _dataParser(snapshot.data!);
+              return _pH(currentValue);
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container();
+            }
+            return const Text('Check the stream');
+          },
+        ),
+        StreamBuilder(
+          stream: streamTurb,
+          builder: (context, AsyncSnapshot<List<int>> snapshot) {
+            if (snapshot.hasError) {
+              return Text('error: ${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.active) {
+              var currentValue = _dataParser(snapshot.data!);
+              return _turb(currentValue);
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container();
+            }
+            return const Text('Check the stream');
+          },
+        ),
+      ],
     );
   }
 }
