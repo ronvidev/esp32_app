@@ -3,9 +3,14 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'dart:convert' show utf8;
 
 class DeviceScreen extends StatefulWidget {
-  const DeviceScreen({Key? key, required this.device}) : super(key: key);
+  const DeviceScreen({
+    Key? key,
+    required this.device,
+    required this.isConnected,
+  }) : super(key: key);
 
   final BluetoothDevice device;
+  final bool isConnected;
 
   @override
   State<DeviceScreen> createState() => _DeviceScreenState();
@@ -31,7 +36,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   connectDevice() async {
-    await widget.device.connect().whenComplete(() => discoverServices());
+    if(!widget.isConnected) {
+      await widget.device.connect().whenComplete(() => discoverServices());
+    } else {
+      discoverServices();
+    }
   }
 
   discoverServices() async {
@@ -40,25 +49,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
       if (service.uuid.toString() == serviceUuid) {
         for (var characteristic in service.characteristics) {
           if (characteristic.uuid.toString() == charactSR0401Uuid) {
-            characteristic.setNotifyValue(!characteristic.isNotifying);
             streamSR0401 = characteristic.value;
           }
           if (characteristic.uuid.toString() == charactSR0402Uuid) {
-            characteristic.setNotifyValue(!characteristic.isNotifying);
             streamSR0402 = characteristic.value;
           }
           if (characteristic.uuid.toString() == charactPHUuid) {
-            characteristic.setNotifyValue(!characteristic.isNotifying);
             streamPH = characteristic.value;
           }
           if (characteristic.uuid.toString() == charactTurbUuid) {
-            characteristic.setNotifyValue(!characteristic.isNotifying);
             streamTurb = characteristic.value;
-            setState(() {
-              isReady = true;
-            });
           }
         }
+        setState(() {
+          isReady = true;
+        });
       }
     }
   }
@@ -168,7 +173,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   _pH(phValue) {
     double ph = 0;
-    if(phValue != ""){
+    if (phValue != "") {
       ph = double.parse(phValue);
     }
     return Padding(
@@ -217,11 +222,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   _turb(turbValue) {
-    print(turbValue);
     double ph = 0;
-    if(turbValue != ""){
+    if (turbValue != "") {
       ph = double.parse(turbValue);
-      print(ph);
     }
     return Padding(
       padding: const EdgeInsets.all(18.0),
@@ -269,7 +272,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).backgroundColor,
       appBar: AppBar(
+        elevation: 0.0,
+        backgroundColor: Colors.transparent,
         title: Text(widget.device.name),
         actions: <Widget>[
           StreamBuilder<BluetoothDeviceState>(
@@ -280,7 +286,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
               String text;
               switch (snapshot.data) {
                 case BluetoothDeviceState.connected:
-                  onPressed = () => widget.device.disconnect();
+                  onPressed = () {
+                    widget.device.disconnect();
+                    Navigator.pop(context);
+                  };
                   text = 'DISCONNECT';
                   break;
                 case BluetoothDeviceState.disconnected:
@@ -319,6 +328,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       var currentValue = _dataParser(snapshot.data!);
                       return _nivelDeposito(currentValue);
                     }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container();
+                    }
                     return const Text('Check the stream');
                   },
                 ),
@@ -331,6 +343,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     if (snapshot.connectionState == ConnectionState.active) {
                       var currentValue = _dataParser(snapshot.data!);
                       return _nivelCisterna(currentValue);
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container();
                     }
                     return const Text('Check the stream');
                   },
@@ -345,6 +360,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       var currentValue = _dataParser(snapshot.data!);
                       return _pH(currentValue);
                     }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container();
+                    }
                     return const Text('Check the stream');
                   },
                 ),
@@ -357,6 +375,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     if (snapshot.connectionState == ConnectionState.active) {
                       var currentValue = _dataParser(snapshot.data!);
                       return _turb(currentValue);
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container();
                     }
                     return const Text('Check the stream');
                   },

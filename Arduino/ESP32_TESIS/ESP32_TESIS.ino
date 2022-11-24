@@ -33,6 +33,9 @@ int distCisterna = 0;
 int pinEco2 = 27;
 int pinGatillo2 = 14;
 
+double turb_Value = 0;
+double ph_Value = 0;
+
 long readUltrasonicDistance(int triggerPin, int echoPin) {
   pinMode(echoPin, INPUT);
   pinMode(triggerPin, OUTPUT);
@@ -46,15 +49,19 @@ long readUltrasonicDistance(int triggerPin, int echoPin) {
 
 // Distance 1 Characteristic
 BLECharacteristic sr04Distance1Characteristics("ca73b3ba-39f6-4ab3-91ae-186dc9577d99", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor sr04Distance1Descriptor(BLEUUID((uint16_t)0x2902));
 
 // Distance 2 Characteristic
 BLECharacteristic sr04Distance2Characteristics("3c49eb0c-abca-40b5-8ebe-368bd46a7e5e", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor sr04Distance2Descriptor(BLEUUID((uint16_t)0x2902));
 
 // pH Characteristic
 BLECharacteristic sensorPHCharacteristics("96f89428-696a-11ed-a1eb-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor sensorPHDescriptor(BLEUUID((uint16_t)0x2902));
 
 // pH Characteristic
 BLECharacteristic sensorTurbCharacteristics("cadf63e3-63ea-4626-9667-e2594d0bf4ae", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor sensorTurbDescriptor(BLEUUID((uint16_t)0x2902));
 
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks {
@@ -87,19 +94,19 @@ void setup() {
 
   // distDeposit Deposito
   sensorService->addCharacteristic(&sr04Distance1Characteristics);
-  sr04Distance1Characteristics.addDescriptor(new BLE2902());
+  sr04Distance1Characteristics.addDescriptor(&sr04Distance1Descriptor);
 
   // distDeposit Cisterna
   sensorService->addCharacteristic(&sr04Distance2Characteristics);
-  sr04Distance2Characteristics.addDescriptor(new BLE2902());
+  sr04Distance2Characteristics.addDescriptor(&sr04Distance2Descriptor);
 
   // pH
   sensorService->addCharacteristic(&sensorPHCharacteristics);
-  sensorPHCharacteristics.addDescriptor(new BLE2902());
+  sensorPHCharacteristics.addDescriptor(&sensorPHDescriptor);
 
   // Turbidez
   sensorService->addCharacteristic(&sensorTurbCharacteristics);
-  sensorTurbCharacteristics.addDescriptor(new BLE2902());
+  sensorTurbCharacteristics.addDescriptor(&sensorTurbDescriptor);
 
   // Start the service
   sensorService->start();
@@ -111,30 +118,30 @@ void setup() {
 }
 
 void loop() {
-  double turb_Value = Serial2.parseFloat();
-  double ph_Value = Serial2.parseFloat();
+  // turb_Value = Serial2.parseFloat();
+  // ph_Value = Serial2.parseFloat();
   if (deviceConnected) {
     if ((millis() - lastTime) > timerDelay) {
       // Leer distancia del deposito
+      // Notify distance 1 reading from HC-SR04
       distDeposit = 0.01723 * readUltrasonicDistance(pinGatillo1, pinEco1);
+      dtostrf(distDeposit, 6, 2, distance1Char);
+      sr04Distance1Characteristics.setValue(distance1Char);
+      sr04Distance1Characteristics.notify();
+      // Set distance 2 Characteristic value and notify
+      distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
+      dtostrf(distCisterna, 6, 2, distance2Char);
+      sr04Distance2Characteristics.setValue(distance2Char);
+      sr04Distance2Characteristics.notify();
+      // Set ph Characteristic value and notify
+      dtostrf(ph_Value, 3, 2, phChar);
+      sensorPHCharacteristics.setValue(phChar);
+      sensorPHCharacteristics.notify();
+      // Set turbidez Characteristic value and notify
+      dtostrf(turb_Value, 3, 2, turbChar);
+      sensorTurbCharacteristics.setValue(turbChar);
+      sensorTurbCharacteristics.notify();
       if (distDeposit < 500) {
-        // Notify distance 1 reading from HC-SR04
-        dtostrf(distDeposit, 6, 2, distance1Char);
-        sr04Distance1Characteristics.setValue(distance1Char);
-        sr04Distance1Characteristics.notify();
-        // Set ph Characteristic value and notify
-        dtostrf(ph_Value, 3, 2, phChar);
-        sensorPHCharacteristics.setValue(phChar);
-        sensorPHCharacteristics.notify();
-        // Set turbidez Characteristic value and notify
-        dtostrf(turb_Value, 3, 2, turbChar);
-        sensorTurbCharacteristics.setValue(turbChar);
-        sensorTurbCharacteristics.notify();
-        // Set distance 2 Characteristic value and notify
-        distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
-        dtostrf(distCisterna, 6, 2, distance2Char);
-        sr04Distance2Characteristics.setValue(distance2Char);
-        sr04Distance2Characteristics.notify();
         if (distCisterna < ALT_MIN_DEPOSIT) {   // Si la cisterna tiene agua...
           if (distDeposit < ALT_MAX_DEPOSIT) {  // Si el agua está en el limite superior...
             digitalWrite(MOTOR, LOW);           // Apagar motor

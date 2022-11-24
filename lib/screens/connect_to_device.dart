@@ -2,6 +2,7 @@ import 'package:esp32_app/device_page.dart';
 import 'package:esp32_app/widgets/next_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:page_transition/page_transition.dart';
 
 class ConnectToDevice extends StatefulWidget {
   const ConnectToDevice({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
   @override
   void initState() {
     super.initState();
-    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 1));
+    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 2));
   }
 
   @override
@@ -33,7 +34,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                 child: Text(
                   'Conectar dispositivo',
                   style: TextStyle(
-                    fontSize: 18.0,
+                    fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -56,17 +57,6 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _textBubble(BuildContext context, String texto) {
-    return Text(
-      texto,
-      style: const TextStyle(
-        fontSize: 18.0,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
       ),
     );
   }
@@ -97,28 +87,29 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
       stream: FlutterBluePlus.instance.connectedDevices.asStream(),
       initialData: const [],
       builder: (c, snapshot) => Column(
-        children: snapshot.data!
-            .map((d) => ListTile(
+        children: snapshot.data!.map((d) {
+          return StreamBuilder<BluetoothDeviceState>(
+            stream: d.state,
+            initialData: BluetoothDeviceState.disconnected,
+            builder: (c, snapshot) {
+              if (snapshot.data == BluetoothDeviceState.connected) {
+                return ListTile(
                   title: Text(d.name),
                   subtitle: const Text('Conectado'),
-                  trailing: StreamBuilder<BluetoothDeviceState>(
-                    stream: d.state,
-                    initialData: BluetoothDeviceState.disconnected,
-                    builder: (c, snapshot) {
-                      if (snapshot.data == BluetoothDeviceState.connected) {
-                        return ElevatedButton(
-                          child: const Text('ABRIR'),
-                          onPressed: () => nextScreenReplace(
-                            context,
-                            DeviceScreen(device: d),
-                          ),
-                        );
-                      }
-                      return Text(snapshot.data.toString());
-                    },
+                  trailing: ElevatedButton(
+                    child: const Text('ABRIR'),
+                    onPressed: () => nextScreen(
+                      context,
+                      DeviceScreen(device: d, isConnected: true),
+                      PageTransitionType.rightToLeft,
+                    ),
                   ),
-                ))
-            .toList(),
+                );
+              }
+              return Container();
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -136,9 +127,10 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                     child: const Text('Conectar'),
                     onPressed: () {
                       r.device.connect();
-                      nextScreenReplace(
+                      nextScreen(
                         context,
-                        DeviceScreen(device: r.device),
+                        DeviceScreen(device: r.device, isConnected: false),
+                        PageTransitionType.rightToLeft,
                       );
                     },
                   ),
