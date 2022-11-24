@@ -135,7 +135,6 @@ void loop() {
         dtostrf(distCisterna, 6, 2, distance2Char);
         sr04Distance2Characteristics.setValue(distance2Char);
         sr04Distance2Characteristics.notify();
-        Serial.println(distCisterna);
         if (distCisterna < ALT_MIN_DEPOSIT) {   // Si la cisterna tiene agua...
           if (distDeposit < ALT_MAX_DEPOSIT) {  // Si el agua está en el limite superior...
             digitalWrite(MOTOR, LOW);           // Apagar motor
