@@ -77,12 +77,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return utf8.decode(dataFromDevice);
   }
 
-  _waiting() {
-    return const Center(
-      child: Text('Cargando...', style: TextStyle(fontSize: 20.0)),
-    );
-  }
-
   _nivelDeposito(distancia) {
     double factDist = 0.0;
     if (distancia != "") {
@@ -277,46 +271,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).backgroundColor,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _appBar(),
-                ),
-                isReady ? _widgetsIoT() : _waiting(),
-              ],
-            ),
+      backgroundColor: Theme.of(context).backgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            children: [
+              _appBar(),
+              Expanded(
+                child: isReady ? _widgetsIoT() : _waiting(),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _appBar() {
-    return Row(
-      // crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Icon(Icons.arrow_back_ios),
-        const SizedBox(width: 10.0),
-        const Text(
-          'Depósito de agua',
-          style: TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0, right: 8.0, top: 12.0),
+      child: Row(
+        children: [
+          const Text(
+            'Depósito de agua',
+            style: TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const Expanded(child: SizedBox()),
-        StreamBuilder<BluetoothDeviceState>(
-          stream: widget.device.state,
-          initialData: BluetoothDeviceState.connecting,
-          builder: (c, snapshot) {
-            VoidCallback? onPressed;
-            Color color;
-            switch (snapshot.data) {
-              case BluetoothDeviceState.connected:
+          const Expanded(child: SizedBox()),
+          StreamBuilder<BluetoothDeviceState>(
+            stream: widget.device.state,
+            initialData: BluetoothDeviceState.connecting,
+            builder: (c, snapshot) {
+              VoidCallback? onPressed;
+              Color color = Colors.white;
+              if (snapshot.data == BluetoothDeviceState.connecting) {
+                onPressed = null;
+                color = Colors.white;
+              } else if (snapshot.data == BluetoothDeviceState.connected) {
                 onPressed = () {
                   widget.device.disconnect();
                   nextScreenReplace(
@@ -326,32 +320,26 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   );
                 };
                 color = Colors.red;
-                break;
-              case BluetoothDeviceState.disconnected:
-                onPressed = () => widget.device.connect();
-                color = Colors.green;
-                break;
-              default:
-                onPressed = null;
-                color = Colors.white;
-                break;
-            }
-            return IconButton(
-              onPressed: onPressed,
-              icon: Icon(
-                Icons.power_settings_new_rounded,
-                color: color,
-              ),
-            );
-          },
-        ),
-      ],
+              }
+              return IconButton(
+                iconSize: 28.0,
+                onPressed: onPressed,
+                icon: Icon(
+                  Icons.power_settings_new_rounded,
+                  color: color,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _widgetsIoT() {
-    return Column(
+    return Wrap(
       children: [
+        _info(),
         StreamBuilder(
           stream: streamSR0401,
           builder: (context, AsyncSnapshot<List<int>> snapshot) {
@@ -418,5 +406,39 @@ class _DeviceScreenState extends State<DeviceScreen> {
         ),
       ],
     );
+  }
+
+  Widget _info() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0, left: 12.0, top: 12.0),
+      child: Column(
+        children: [
+          Column(children: [
+            Row(children: [
+              _text('Capacidad: ', 16.0, FontWeight.normal),
+              _text('1100 L', 16.0, FontWeight.bold),
+            ]),
+            Row(children: [
+              _text('Capacidad: ', 16.0, FontWeight.normal),
+              _text('1100 L', 16.0, FontWeight.bold),
+            ]),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _text(String text, double size, FontWeight weight) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: size,
+        fontWeight: weight,
+      ),
+    );
+  }
+
+  _waiting() {
+    return const Center(child: CircularProgressIndicator());
   }
 }

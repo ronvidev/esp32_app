@@ -16,7 +16,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
   @override
   void initState() {
     super.initState();
-    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 2));
+    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 1));
   }
 
   @override
@@ -88,29 +88,29 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
           .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
       initialData: const [],
       builder: (c, snapshot) => Column(
-        children: snapshot.data!.map((d) {
-          return StreamBuilder<BluetoothDeviceState>(
-            stream: d.state,
-            initialData: BluetoothDeviceState.disconnected,
-            builder: (c, snapshot) {
-              if (snapshot.data == BluetoothDeviceState.connected) {
-                return ListTile(
-                  title: Text(d.name),
-                  subtitle: const Text('Conectado'),
-                  trailing: ElevatedButton(
-                    child: const Text('ABRIR'),
-                    onPressed: () => nextScreenReplace(
-                      context,
-                      DeviceScreen(device: d, isConnected: true),
-                      PageTransitionType.rightToLeft,
-                    ),
-                  ),
-                );
-              }
-              return Container();
-            },
-          );
-        }).toList(),
+        children: snapshot.data!
+            .map((d) => StreamBuilder<BluetoothDeviceState>(
+                  stream: d.state,
+                  initialData: BluetoothDeviceState.disconnected,
+                  builder: (c, snapshot) {
+                    if (snapshot.data == BluetoothDeviceState.connected) {
+                      return ListTile(
+                        title: Text(d.name),
+                        subtitle: const Text('Conectado'),
+                        trailing: ElevatedButton(
+                          child: const Text('ABRIR'),
+                          onPressed: () => nextScreenReplace(
+                            context,
+                            DeviceScreen(device: d, isConnected: true),
+                            PageTransitionType.rightToLeft,
+                          ),
+                        ),
+                      );
+                    }
+                    return Container();
+                  },
+                ))
+            .toList(),
       ),
     );
   }

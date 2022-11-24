@@ -1,6 +1,8 @@
+import 'package:esp32_app/device_page.dart';
 import 'package:esp32_app/screens/bluetooth_disable.dart';
 import 'package:esp32_app/screens/connect_to_device.dart';
 import 'package:esp32_app/theme/theme_constants.dart';
+import 'package:esp32_app/widgets/next_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -28,11 +30,28 @@ class MyApp extends StatelessWidget {
         builder: (c, snapshot) {
           final state = snapshot.data;
           if (state == BluetoothState.on) {
-            return const ConnectToDevice();
+            return stateDevice();
           }
           return BluetoothOffScreen(state: state);
         },
       ),
+    );
+  }
+
+  stateDevice() {
+    return StreamBuilder<List<BluetoothDevice>>(
+      stream: Stream.periodic(const Duration(seconds: 1))
+          .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
+      initialData: const [],
+      builder: (c, snapshot) {
+        dynamic disp;
+        for (var element in snapshot.data!) {
+          disp = element;
+        }
+        return disp != null
+            ? DeviceScreen(device: disp, isConnected: true)
+            : const ConnectToDevice();
+      },
     );
   }
 }
