@@ -84,7 +84,8 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
 
   Widget _devicesConnected() {
     return StreamBuilder<List<BluetoothDevice>>(
-      stream: FlutterBluePlus.instance.connectedDevices.asStream(),
+      stream: Stream.periodic(const Duration(seconds: 1))
+          .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
       initialData: const [],
       builder: (c, snapshot) => Column(
         children: snapshot.data!.map((d) {
@@ -98,7 +99,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                   subtitle: const Text('Conectado'),
                   trailing: ElevatedButton(
                     child: const Text('ABRIR'),
-                    onPressed: () => nextScreen(
+                    onPressed: () => nextScreenReplace(
                       context,
                       DeviceScreen(device: d, isConnected: true),
                       PageTransitionType.rightToLeft,
@@ -127,7 +128,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                     child: const Text('Conectar'),
                     onPressed: () {
                       r.device.connect();
-                      nextScreen(
+                      nextScreenReplace(
                         context,
                         DeviceScreen(device: r.device, isConnected: false),
                         PageTransitionType.rightToLeft,

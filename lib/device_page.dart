@@ -1,6 +1,10 @@
+import 'package:esp32_app/screens/connect_to_device.dart';
+import 'package:esp32_app/widgets/next_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'dart:convert' show utf8;
+
+import 'package:page_transition/page_transition.dart';
 
 class DeviceScreen extends StatefulWidget {
   const DeviceScreen({
@@ -36,7 +40,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   connectDevice() async {
-    if(!widget.isConnected) {
+    if (!widget.isConnected) {
       await widget.device.connect().whenComplete(() => discoverServices());
     } else {
       discoverServices();
@@ -60,6 +64,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           if (characteristic.uuid.toString() == charactTurbUuid) {
             streamTurb = characteristic.value;
           }
+          await characteristic.setNotifyValue(!characteristic.isNotifying);
         }
         setState(() {
           isReady = true;
@@ -288,7 +293,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 case BluetoothDeviceState.connected:
                   onPressed = () {
                     widget.device.disconnect();
-                    Navigator.pop(context);
+                    nextScreenReplace(
+                      context,
+                      const ConnectToDevice(),
+                      PageTransitionType.leftToRight,
+                    );
                   };
                   text = 'DISCONNECT';
                   break;
