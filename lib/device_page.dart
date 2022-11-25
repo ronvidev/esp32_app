@@ -81,59 +81,51 @@ class _DeviceScreenState extends State<DeviceScreen> {
     double factDist = 0.0;
     if (distancia != "") {
       factDist = (27 - double.parse(distancia)) / 27;
-      if (factDist < 0) {
-        factDist = 0;
-      }
+      if (factDist < 0) factDist = 0;
     }
+    factDist = 0.59;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18.0),
-      child: Container(
-        width: double.infinity,
-        // height: 250.0,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(colors: [
+    return Container(
+      width: 80.0,
+      height: 350.0,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.0),
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).canvasColor,
               Theme.of(context).primaryColor,
-              Theme.of(context).backgroundColor,
-            ])),
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Text(
-                    'Nivel de agua',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10.0),
-              LayoutBuilder(builder: (context, constraints) {
+            ],
+          )),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _text('Nivel', 20.0, FontWeight.bold),
+            const SizedBox(height: 10.0),
+            _text('${(factDist * 100).round()} %', 18.0, FontWeight.normal),
+            const SizedBox(height: 10.0),
+            Expanded(
+              child: LayoutBuilder(builder: (context, constraints) {
                 return Container(
-                  height: 20.0,
-                  alignment: Alignment.centerLeft,
+                  width: 50.0,
+                  alignment: Alignment.bottomCenter,
                   decoration: BoxDecoration(
-                      color: Theme.of(context).secondaryHeaderColor,
+                      color: Theme.of(context).backgroundColor,
                       borderRadius: BorderRadius.circular(10.0)),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: constraints.maxWidth * factDist,
+                    curve: Curves.easeInOutBack,
+                    duration: const Duration(milliseconds: 800),
+                    height: constraints.maxHeight * factDist,
                     decoration: BoxDecoration(
-                        color: Colors.purple,
+                        color: Colors.blueGrey,
                         borderRadius: BorderRadius.circular(10.0)),
                   ),
                 );
-              })
-            ],
-          ),
+              }),
+            )
+          ],
         ),
       ),
     );
@@ -151,21 +143,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
       isCorrect = true;
     }
     return isCorrect
-        ? Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18.0, vertical: 5.0),
-            child: Row(
-              children: [
-                Text(
-                  '${thereWater ? "Sí" : "No"} hay agua en la cisterna',
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: thereWater ? Colors.blueAccent : Colors.red,
-                  ),
-                ),
-              ],
-            ),
+        ? _text(
+          '${thereWater ? "Sí" : "No"} hay agua en la cisternaaaaaa',
+          20.0,
+          FontWeight.bold,
           )
         : const SizedBox(height: 31.0);
   }
@@ -178,8 +159,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18.0),
       child: Container(
-        width: double.infinity,
-        // height: 250.0,
+        width: 150.0,
+        height: 100.0,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.0),
             gradient: LinearGradient(colors: [
@@ -278,9 +259,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           child: Column(
             children: [
               _appBar(),
-              Expanded(
-                child: isReady ? _widgetsIoT() : _waiting(),
-              ),
+              Expanded(child: isReady ? _widgetsIoT() : _waiting()),
             ],
           ),
         ),
@@ -291,138 +270,133 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget _appBar() {
     return Padding(
       padding: const EdgeInsets.only(left: 12.0, right: 8.0, top: 12.0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Depósito de agua',
-            style: TextStyle(
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Expanded(child: SizedBox()),
-          StreamBuilder<BluetoothDeviceState>(
-            stream: widget.device.state,
-            initialData: BluetoothDeviceState.connecting,
-            builder: (c, snapshot) {
-              VoidCallback? onPressed;
-              Color color = Colors.white;
-              if (snapshot.data == BluetoothDeviceState.connecting) {
-                onPressed = null;
-                color = Colors.white;
-              } else if (snapshot.data == BluetoothDeviceState.connected) {
-                onPressed = () {
-                  widget.device.disconnect();
-                  nextScreenReplace(
-                    context,
-                    const ConnectToDevice(),
-                    PageTransitionType.leftToRight,
-                  );
-                };
-                color = Colors.red;
-              }
-              return IconButton(
-                iconSize: 28.0,
-                onPressed: onPressed,
-                icon: Icon(
-                  Icons.power_settings_new_rounded,
-                  color: color,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Depósito de agua',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            },
+              ),
+              StreamBuilder<BluetoothDeviceState>(
+                stream: widget.device.state,
+                initialData: BluetoothDeviceState.connecting,
+                builder: (c, snapshot) {
+                  VoidCallback? onPressed;
+                  Color color = Colors.white;
+                  if (snapshot.data == BluetoothDeviceState.connecting) {
+                    onPressed = null;
+                    color = Colors.white;
+                  } else if (snapshot.data == BluetoothDeviceState.connected) {
+                    onPressed = () {
+                      widget.device.disconnect();
+                      nextScreenReplace(
+                        context,
+                        const ConnectToDevice(),
+                        PageTransitionType.leftToRight,
+                      );
+                    };
+                    color = Colors.red;
+                  }
+                  return IconButton(
+                    iconSize: 28.0,
+                    onPressed: onPressed,
+                    icon: Icon(
+                      Icons.power_settings_new_rounded,
+                      color: color,
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
+          _text('Tinaco (1100 L)', 16.0, FontWeight.bold),
         ],
       ),
     );
   }
 
   Widget _widgetsIoT() {
-    return Wrap(
-      children: [
-        _info(),
-        StreamBuilder(
-          stream: streamSR0401,
-          builder: (context, AsyncSnapshot<List<int>> snapshot) {
-            if (snapshot.hasError) {
-              return Text('error: ${snapshot.error}');
-            }
-            if (snapshot.connectionState == ConnectionState.active) {
-              var currentValue = _dataParser(snapshot.data!);
-              return _nivelDeposito(currentValue);
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container();
-            }
-            return const Text('Check the stream');
-          },
-        ),
-        StreamBuilder(
-          stream: streamSR0402,
-          builder: (context, AsyncSnapshot<List<int>> snapshot) {
-            if (snapshot.hasError) {
-              return Text('error: ${snapshot.error}');
-            }
-            if (snapshot.connectionState == ConnectionState.active) {
-              var currentValue = _dataParser(snapshot.data!);
-              return _nivelCisterna(currentValue);
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container();
-            }
-            return const Text('Check the stream');
-          },
-        ),
-        StreamBuilder(
-          stream: streamPH,
-          builder: (context, AsyncSnapshot<List<int>> snapshot) {
-            if (snapshot.hasError) {
-              return Text('error: ${snapshot.error}');
-            }
-            if (snapshot.connectionState == ConnectionState.active) {
-              var currentValue = _dataParser(snapshot.data!);
-              return _pH(currentValue);
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container();
-            }
-            return const Text('Check the stream');
-          },
-        ),
-        StreamBuilder(
-          stream: streamTurb,
-          builder: (context, AsyncSnapshot<List<int>> snapshot) {
-            if (snapshot.hasError) {
-              return Text('error: ${snapshot.error}');
-            }
-            if (snapshot.connectionState == ConnectionState.active) {
-              var currentValue = _dataParser(snapshot.data!);
-              return _turb(currentValue);
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container();
-            }
-            return const Text('Check the stream');
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _info() {
     return Padding(
-      padding: const EdgeInsets.only(right: 12.0, left: 12.0, top: 12.0),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(children: [
-            Row(children: [
-              _text('Capacidad: ', 16.0, FontWeight.normal),
-              _text('1100 L', 16.0, FontWeight.bold),
-            ]),
-            Row(children: [
-              _text('Capacidad: ', 16.0, FontWeight.normal),
-              _text('1100 L', 16.0, FontWeight.bold),
-            ]),
-          ]),
+          StreamBuilder(
+            stream: streamSR0401,
+            builder: (context, AsyncSnapshot<List<int>> snapshot) {
+              if (snapshot.hasError) {
+                return Text('error: ${snapshot.error}');
+              }
+              if (snapshot.connectionState == ConnectionState.active) {
+                var currentValue = _dataParser(snapshot.data!);
+                return _nivelDeposito(currentValue);
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Container();
+              }
+              return const Text('Check the stream');
+            },
+          ),
+          const SizedBox(width: 16.0),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StreamBuilder(
+                stream: streamSR0402,
+                builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('error: ${snapshot.error}');
+                  }
+                  if (snapshot.connectionState == ConnectionState.active) {
+                    var currentValue = _dataParser(snapshot.data!);
+                    return _nivelCisterna(currentValue);
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container();
+                  }
+                  return const Text('Check the stream');
+                },
+              ),
+              StreamBuilder(
+                stream: streamPH,
+                builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('error: ${snapshot.error}');
+                  }
+                  if (snapshot.connectionState == ConnectionState.active) {
+                    var currentValue = _dataParser(snapshot.data!);
+                    return _pH(currentValue);
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container();
+                  }
+                  return const Text('Check the stream');
+                },
+              ),
+              // StreamBuilder(
+              //   stream: streamTurb,
+              //   builder: (context, AsyncSnapshot<List<int>> snapshot) {
+              //     if (snapshot.hasError) {
+              //       return Text('error: ${snapshot.error}');
+              //     }
+              //     if (snapshot.connectionState == ConnectionState.active) {
+              //       var currentValue = _dataParser(snapshot.data!);
+              //       return _turb(currentValue);
+              //     }
+              //     if (snapshot.connectionState == ConnectionState.waiting) {
+              //       return Container();
+              //     }
+              //     return const Text('Check the stream');
+              //   },
+              // ),
+            ],
+          ),
         ],
       ),
     );

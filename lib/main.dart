@@ -2,7 +2,6 @@ import 'package:esp32_app/device_page.dart';
 import 'package:esp32_app/screens/bluetooth_disable.dart';
 import 'package:esp32_app/screens/connect_to_device.dart';
 import 'package:esp32_app/theme/theme_constants.dart';
-import 'package:esp32_app/widgets/next_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
