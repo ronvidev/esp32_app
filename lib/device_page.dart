@@ -80,31 +80,22 @@ class _DeviceScreenState extends State<DeviceScreen> {
   _nivelDeposito(distancia) {
     double factDist = 0.0;
     if (distancia != "") {
-      factDist = (27 - double.parse(distancia)) / 27;
+      factDist = (27 - double.parse(distancia) + 3) / 27; // 3 tolerancia sensor
       if (factDist < 0) factDist = 0;
     }
-    factDist = 0.59;
 
     return Container(
-      width: 80.0,
-      height: 350.0,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).canvasColor,
-              Theme.of(context).primaryColor,
-            ],
-          )),
+      width: 90.0,
+      height: 400.0,
+      decoration: _boxDecoration(context),
       child: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _text('Nivel', 20.0, FontWeight.bold),
+            _text('Nivel', 18.0, FontWeight.normal),
             const SizedBox(height: 10.0),
-            _text('${(factDist * 100).round()} %', 18.0, FontWeight.normal),
+            _text('${(factDist * 100).round()} %', 20.0, FontWeight.bold),
             const SizedBox(height: 10.0),
             Expanded(
               child: LayoutBuilder(builder: (context, constraints) {
@@ -115,11 +106,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       color: Theme.of(context).backgroundColor,
                       borderRadius: BorderRadius.circular(10.0)),
                   child: AnimatedContainer(
-                    curve: Curves.easeInOutBack,
+                    curve: Curves.easeInOutQuart,
                     duration: const Duration(milliseconds: 800),
                     height: constraints.maxHeight * factDist,
                     decoration: BoxDecoration(
-                        color: Colors.blueGrey,
+                        color: Colors.lightBlue,
                         borderRadius: BorderRadius.circular(10.0)),
                   ),
                 );
@@ -131,67 +122,53 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 
-  _nivelCisterna(distancia) {
-    bool isCorrect = false;
-    bool thereWater = false;
-    if (distancia != "") {
-      if (double.parse(distancia) < 25) {
-        thereWater = true;
-      } else {
-        thereWater = false;
-      }
-      isCorrect = true;
-    }
-    return isCorrect
-        ? _text(
-          '${thereWater ? "Sí" : "No"} hay agua en la cisternaaaaaa',
-          20.0,
-          FontWeight.bold,
-          )
-        : const SizedBox(height: 31.0);
+  _velocidad() {
+    return Expanded(
+      flex: 5,
+      child: Container(
+        height: 80.0,
+        decoration: _boxDecoration(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _text('Velocidad', 18.0, FontWeight.normal),
+              const Expanded(child: SizedBox()),
+              _text('0.0 Lt/s', 20.0, FontWeight.bold),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  _pH(phValue) {
-    double ph = 0;
-    if (phValue != "") {
-      ph = double.parse(phValue);
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18.0),
+  _motor() {
+    return Expanded(
+      flex: 4,
       child: Container(
-        width: 150.0,
-        height: 100.0,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).backgroundColor,
-            ])),
+        height: 80.0,
+        decoration: _boxDecoration(context),
         child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: const [
-                  Text(
-                    'Nivel de pH',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _text('Motor', 18.0, FontWeight.normal),
+                  const SizedBox(height: 5.0),
+                  _text('OFF', 20.0, FontWeight.bold),
                 ],
               ),
-              const SizedBox(height: 10.0),
-              Text(
-                '${ph.ceil()}',
-                style: const TextStyle(
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+              const SizedBox(width: 8.0),
+              Container(
+                width: 10.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: Colors.red,
                 ),
               ),
             ],
@@ -201,49 +178,131 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 
-  _turb(turbValue) {
-    double ph = 0;
-    if (turbValue != "") {
-      ph = double.parse(turbValue);
+  _nivelCisterna(distancia) {
+    bool isCalculated = false;
+    bool thereWater = false;
+    if (distancia != "") {
+      if (double.parse(distancia) < 25) {
+        thereWater = true;
+      } else {
+        thereWater = false;
+      }
+      isCalculated = true;
     }
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).backgroundColor,
-            ])),
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Text(
-                    'Nivel de turbidez',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+    return Container(
+      height: 80.0,
+      decoration: _boxDecoration(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _text('Cisterna ', 18.0, FontWeight.normal),
+                const SizedBox(height: 5.0),
+                isCalculated
+                    ? _text(
+                        '${thereWater ? "Agua" : "Sin agua"} disponible',
+                        20.0,
+                        FontWeight.bold,
+                      )
+                    : _text('Calculando...', 20.0, FontWeight.bold)
+              ],
+            ),
+            const SizedBox(width: 8.0),
+            Container(
+              width: 25.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                color: thereWater ? Colors.lightBlue : Colors.red,
               ),
-              const SizedBox(height: 10.0),
-              Text(
-                '${ph.ceil()}',
-                style: const TextStyle(
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pH(phValue) {
+    double levelPH = 0;
+    String pH = 'Calculando...';
+    if (phValue != "") {
+      levelPH = double.parse(phValue);
+      if(levelPH < 6.5) {
+        pH = 'Ácido';
+      } else if(levelPH <= 9.5) {
+        pH = 'Neutral';
+      } else {
+        pH = 'Alcalino';
+      }
+    }
+    return Container(
+      height: 85.0,
+      decoration: _boxDecoration(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _text('pH', 18.0, FontWeight.normal),
+                const SizedBox(width: 8.0),
+                _text(pH, 20.0, FontWeight.bold),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+            Container(
+              height: 10.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25.0),
+                gradient: const LinearGradient(colors: [
+                  Colors.red,
+                  Colors.green,
+                  Colors.deepPurple
+                ]),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _turb(turbValue) {
+    double turbVolt = 0;
+    String turbidez = 'Cargando...';
+    if (turbValue != "") {
+      turbVolt = double.parse(turbValue);
+      if(turbVolt < 4){
+        turbidez = 'Agua sucia';
+      } else if (turbVolt < 5) {
+        turbidez = 'Aceptable';
+      } else {
+        turbidez = 'Perfecto';
+      }
+    }
+    return Container(
+      height: 90.0,
+      decoration: _boxDecoration(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _text('Turbidez', 18.0, FontWeight.normal),
+            const SizedBox(height: 10.0),
+            Row(
+              children: [
+                // _text('${turbVolt.ceil()} V - ', 24.0, FontWeight.bold),
+                _text(turbidez, 24.0, FontWeight.bold),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -327,78 +386,58 @@ class _DeviceScreenState extends State<DeviceScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StreamBuilder(
-            stream: streamSR0401,
-            builder: (context, AsyncSnapshot<List<int>> snapshot) {
-              if (snapshot.hasError) {
-                return Text('error: ${snapshot.error}');
-              }
-              if (snapshot.connectionState == ConnectionState.active) {
-                var currentValue = _dataParser(snapshot.data!);
-                return _nivelDeposito(currentValue);
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container();
-              }
-              return const Text('Check the stream');
-            },
-          ),
-          const SizedBox(width: 16.0),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StreamBuilder(
-                stream: streamSR0402,
-                builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('error: ${snapshot.error}');
-                  }
-                  if (snapshot.connectionState == ConnectionState.active) {
-                    var currentValue = _dataParser(snapshot.data!);
-                    return _nivelCisterna(currentValue);
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container();
-                  }
-                  return const Text('Check the stream');
-                },
-              ),
-              StreamBuilder(
-                stream: streamPH,
-                builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('error: ${snapshot.error}');
-                  }
-                  if (snapshot.connectionState == ConnectionState.active) {
-                    var currentValue = _dataParser(snapshot.data!);
-                    return _pH(currentValue);
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container();
-                  }
-                  return const Text('Check the stream');
-                },
-              ),
-              // StreamBuilder(
-              //   stream: streamTurb,
-              //   builder: (context, AsyncSnapshot<List<int>> snapshot) {
-              //     if (snapshot.hasError) {
-              //       return Text('error: ${snapshot.error}');
-              //     }
-              //     if (snapshot.connectionState == ConnectionState.active) {
-              //       var currentValue = _dataParser(snapshot.data!);
-              //       return _turb(currentValue);
-              //     }
-              //     if (snapshot.connectionState == ConnectionState.waiting) {
-              //       return Container();
-              //     }
-              //     return const Text('Check the stream');
-              //   },
-              // ),
-            ],
+          _widget(streamSR0401, _nivelDeposito),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  _velocidad(),
+                  const SizedBox(width: 12.0),
+                  _motor(),
+                ]),
+                const SizedBox(height: 12.0),
+                _widget(streamSR0402, _nivelCisterna),
+                const SizedBox(height: 12.0),
+                _widget(streamPH, _pH),
+                const SizedBox(height: 12.0),
+                _widget(streamTurb, _turb),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  BoxDecoration _boxDecoration(context) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(18.0),
+      gradient: LinearGradient(
+        begin: Alignment.bottomCenter,
+        colors: [
+          Theme.of(context).canvasColor,
+          Theme.of(context).primaryColor,
+        ],
+      ),
+    );
+  }
+
+  Widget _widget(Stream<List<int>> stream, Function widget) {
+    return StreamBuilder(
+      stream: stream,
+      builder: (context, AsyncSnapshot<List<int>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          var currentValue = _dataParser(snapshot.data!);
+          return widget(currentValue);
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container();
+        } else if (snapshot.hasError) {
+          return Text('error: ${snapshot.error}');
+        }
+        return const Text('Check the stream');
+      },
     );
   }
 
