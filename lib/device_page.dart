@@ -86,7 +86,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
     return Container(
       width: 90.0,
-      height: 400.0,
+      height: 367.0,
       decoration: _boxDecoration(context),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -146,31 +146,31 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   _motor() {
     return Expanded(
-      flex: 4,
+      flex: 5,
       child: Container(
         height: 80.0,
         decoration: _boxDecoration(context),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _text('Motor', 18.0, FontWeight.normal),
-                  const SizedBox(height: 5.0),
-                  _text('OFF', 20.0, FontWeight.bold),
+                  Container(
+                    width: 12.0,
+                    height: 12.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Colors.red,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(width: 8.0),
-              Container(
-                width: 10.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Colors.red,
-                ),
-              ),
+              const SizedBox(height: 5.0),
+              _text('Apagado', 20.0, FontWeight.bold),
             ],
           ),
         ),
@@ -181,11 +181,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   _nivelCisterna(distancia) {
     bool isCalculated = false;
     bool thereWater = false;
+    Color color = Colors.white;
     if (distancia != "") {
       if (double.parse(distancia) < 25) {
         thereWater = true;
+        color = Colors.lightBlue;
       } else {
         thereWater = false;
+        color = Colors.red;
       }
       isCalculated = true;
     }
@@ -212,11 +215,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
               ],
             ),
             const SizedBox(width: 8.0),
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
               width: 25.0,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
-                color: thereWater ? Colors.lightBlue : Colors.red,
+                color: color,
               ),
             ),
           ],
@@ -230,21 +234,21 @@ class _DeviceScreenState extends State<DeviceScreen> {
     String pH = 'Calculando...';
     if (phValue != "") {
       levelPH = double.parse(phValue);
-      if(levelPH < 6.5) {
+      levelPH = 8;
+      if (levelPH < 6.5) {
         pH = 'Ácido';
-      } else if(levelPH <= 9.5) {
+      } else if (levelPH <= 9.5) {
         pH = 'Neutral';
       } else {
         pH = 'Alcalino';
       }
     }
     return Container(
-      height: 85.0,
+      height: 90.0,
       decoration: _boxDecoration(context),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -255,16 +259,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
               ],
             ),
             const SizedBox(height: 16.0),
-            Container(
-              height: 10.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25.0),
-                gradient: const LinearGradient(colors: [
-                  Colors.red,
-                  Colors.green,
-                  Colors.deepPurple
-                ]),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 5.0),
+                Expanded(child: LayoutBuilder(builder: (context, constraints) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      Container(
+                        height: 10.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25.0),
+                          gradient: const LinearGradient(colors: [
+                            Colors.red,
+                            Colors.green,
+                            Colors.deepPurple
+                          ]),
+                        ),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.fastOutSlowIn,
+                        left: (constraints.maxWidth * (levelPH / 14)) - 5.0,
+                        child: Container(
+                          height: 20.0,
+                          width: 10.0,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5.0),
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  );
+                })),
+                const SizedBox(width: 18.0),
+                SizedBox(
+                    width: 45, child: _text('$levelPH', 20.0, FontWeight.bold)),
+              ],
             ),
           ],
         ),
@@ -275,32 +309,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget _turb(turbValue) {
     double turbVolt = 0;
     String turbidez = 'Cargando...';
+    Color color = Colors.white;
     if (turbValue != "") {
       turbVolt = double.parse(turbValue);
-      if(turbVolt < 4){
+      turbVolt = 4;
+      if (turbVolt < 4) {
         turbidez = 'Agua sucia';
+        color = Colors.green;
       } else if (turbVolt < 5) {
         turbidez = 'Aceptable';
+        color = Colors.lightBlueAccent;
       } else {
-        turbidez = 'Perfecto';
+        turbidez = 'Agua limpia';
+        color = Colors.lightBlue;
       }
     }
     return Container(
-      height: 90.0,
+      height: 80.0,
       decoration: _boxDecoration(context),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _text('Turbidez', 18.0, FontWeight.normal),
-            const SizedBox(height: 10.0),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // _text('${turbVolt.ceil()} V - ', 24.0, FontWeight.bold),
-                _text(turbidez, 24.0, FontWeight.bold),
+                _text('Turbidez', 18.0, FontWeight.normal),
+                const SizedBox(height: 5.0),
+                _text(turbidez, 20.0, FontWeight.bold),
               ],
+            ),
+            const SizedBox(width: 8.0),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              width: 25.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                color: color,
+              ),
             ),
           ],
         ),
