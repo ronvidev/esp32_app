@@ -39,8 +39,7 @@ class MyApp extends StatelessWidget {
 
   stateDevice() {
     return StreamBuilder<List<BluetoothDevice>>(
-      stream: Stream.periodic(const Duration(seconds: 1))
-          .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
+      stream: FlutterBluePlus.instance.connectedDevices.asStream(),
       initialData: const [],
       builder: (c, snapshot) {
         dynamic disp;

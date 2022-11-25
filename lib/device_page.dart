@@ -31,6 +31,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
   late Stream<List<int>> streamPH;
   late Stream<List<int>> streamTurb;
   late bool isReady;
+  double velocidad = 0.0;
+  double distAct = 0.0;
+  double distAnt = 0.0;
 
   @override
   void initState() {
@@ -80,7 +83,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   _nivelDeposito(distancia) {
     double factDist = 0.0;
     if (distancia != "") {
-      factDist = (27 - double.parse(distancia) + 3) / 27; // 3 tolerancia sensor
+      distAct = double.parse(distancia);
+      factDist = (25 - distAct + 3) / 25; // 3 tolerancia sensor
       if (factDist < 0) factDist = 0;
     }
 
@@ -122,7 +126,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 
-  _velocidad() {
+  _velocidad(distancia) {
+    if (distancia != "") {
+      velocidad = (distAct - distAnt).abs() * 0.4815;
+      distAnt = distAct;
+    }
     return Expanded(
       flex: 5,
       child: Container(
@@ -135,7 +143,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
             children: [
               _text('Velocidad', 18.0, FontWeight.normal),
               const Expanded(child: SizedBox()),
-              _text('0.0 Lt/s', 20.0, FontWeight.bold),
+              _text('${velocidad.toStringAsFixed(1)} Lt/s', 20.0,
+                  FontWeight.bold),
               const Expanded(child: SizedBox()),
             ],
           ),
@@ -429,19 +438,20 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   Widget _widgetsIoT() {
+    final broadcastStream = streamSR0401.asBroadcastStream();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _widget(streamSR0401, _nivelDeposito),
+          _widget(broadcastStream, _nivelDeposito),
           const SizedBox(width: 12.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  _velocidad(),
+                  _widget(broadcastStream, _velocidad),
                   const SizedBox(width: 12.0),
                   _motor(),
                 ]),
