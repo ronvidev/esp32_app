@@ -243,7 +243,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     String pH = 'Calculando...';
     if (phValue != "") {
       levelPH = double.parse(phValue);
-      levelPH = 8;
+      levelPH = 4;
       if (levelPH < 6.5) {
         pH = 'Ácido';
       } else if (levelPH <= 9.5) {
@@ -321,7 +321,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     Color color = Colors.white;
     if (turbValue != "") {
       turbVolt = double.parse(turbValue);
-      turbVolt = 4;
+      turbVolt = 5;
       if (turbVolt < 4) {
         turbidez = 'Agua sucia';
         color = Colors.green;
