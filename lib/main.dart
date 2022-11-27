@@ -10,7 +10,11 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent, // transparent status bar
+    statusBarIconBrightness: Brightness.dark, // color icons
   ));
+  SystemChrome.setPreferredOrientations(
+    [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+  );
   runApp(const MyApp());
 }
 
@@ -38,15 +42,16 @@ class MyApp extends StatelessWidget {
   }
 
   stateDevice() {
+    dynamic disp;
     return StreamBuilder<List<BluetoothDevice>>(
       stream: FlutterBluePlus.instance.connectedDevices.asStream(),
       initialData: const [],
       builder: (c, snapshot) {
-        dynamic disp;
-        for (var element in snapshot.data!) {
+        List<BluetoothDevice> data = snapshot.data!;
+        for (var element in data) {
           disp = element;
         }
-        return disp != null
+        return data.isNotEmpty
             ? DeviceScreen(device: disp, isConnected: true)
             : const ConnectToDevice();
       },

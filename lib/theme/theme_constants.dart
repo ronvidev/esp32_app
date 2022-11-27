@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-const Color colorPrimary = Colors.cyan;
+Color primaryColor = const Color.fromARGB(255, 16, 56, 91);
 
 ThemeData lightMode = ThemeData(
   brightness: Brightness.light,
-  primaryColor: colorPrimary,
+  primaryColor: primaryColor,
+  backgroundColor: const Color.fromARGB(255, 216, 229, 253),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
+      backgroundColor: MaterialStateProperty.all(primaryColor),
       padding: MaterialStateProperty.all(
         const EdgeInsets.symmetric(
           horizontal: 24.0,
@@ -20,12 +22,29 @@ ThemeData lightMode = ThemeData(
       ),
     ),
   ),
+  textTheme: TextTheme(
+    titleMedium: const TextStyle(
+      fontSize: 16.0,
+      fontWeight: FontWeight.bold,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 24.0,
+      fontWeight: FontWeight.bold,
+      color: primaryColor,
+    ),
+    labelMedium: const TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
 );
 
 ThemeData darkMode = ThemeData(
   brightness: Brightness.dark,
-  backgroundColor: Colors.blueGrey[900],
-  canvasColor: Colors.black45,
+  primaryColor: Colors.white,
+  backgroundColor: const Color.fromARGB(255, 21, 25, 44),
+  canvasColor: const Color.fromARGB(255, 13, 10, 24),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
       padding: MaterialStateProperty.all(
@@ -42,6 +61,22 @@ ThemeData darkMode = ThemeData(
       backgroundColor: MaterialStateProperty.all(Colors.white),
       foregroundColor: MaterialStateProperty.all(Colors.black),
       overlayColor: MaterialStateProperty.all(Colors.black26),
+    ),
+  ),
+  textTheme: const TextTheme(
+    titleMedium: TextStyle(
+      fontSize: 16.0,
+      fontWeight: FontWeight.bold,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 24.0,
+      fontWeight: FontWeight.bold,
+      // color: Colors.black,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
     ),
   ),
 );

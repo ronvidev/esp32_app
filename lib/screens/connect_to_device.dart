@@ -1,5 +1,6 @@
 import 'package:esp32_app/device_page.dart';
 import 'package:esp32_app/widgets/next_screen.dart';
+import 'package:esp32_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:page_transition/page_transition.dart';
@@ -12,7 +13,7 @@ class ConnectToDevice extends StatefulWidget {
 }
 
 class _ConnectToDeviceState extends State<ConnectToDevice> {
-  final BorderRadius _borderRadius = BorderRadius.circular(24.0);
+
   @override
   void initState() {
     super.initState();
@@ -27,33 +28,20 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 18.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15.0,
+                  vertical: 20.0,
+                ),
                 child: Text(
-                  'Conectar dispositivo',
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  '¡Bienvenido!',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
-                  borderRadius: _borderRadius,
-                ),
-                height: 300.0,
-                child: ClipRRect(
-                  borderRadius: _borderRadius,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: listDevices(),
-                  ),
-                ),
-              ),
+              target(context, 'Conecte su dispositivo', listDevices(), height: 280.0),
             ],
           ),
         ),
@@ -65,23 +53,21 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
     return RefreshIndicator(
       color: Theme.of(context).focusColor,
       displacement: 20.0,
-      onRefresh: () => FlutterBluePlus.instance
-          .startScan(timeout: const Duration(seconds: 1)),
+      onRefresh: () => FlutterBluePlus.instance.startScan(
+        timeout: const Duration(seconds: 1),
+      ),
       child: ListView(
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
-        children: [_deviceScanned()],
-      ),
-    );
-  }
-
-  Widget _deviceScanned() {
-    return StreamBuilder<List<ScanResult>>(
-      stream: FlutterBluePlus.instance.scanResults,
-      initialData: const [],
-      builder: (c, snapshot) => Column(
-        children: snapshot.data!
-            .map((r) => ListTile(
+        children: [
+          StreamBuilder<List<ScanResult>>(
+            stream: FlutterBluePlus.instance.scanResults,
+            initialData: const [],
+            builder: (c, snapshot) => Column(
+              children: snapshot.data!.map((r) {
+                return ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 25.0),
                   title: Text(r.device.name),
                   subtitle: Text(r.device.id.toString()),
                   trailing: ElevatedButton(
@@ -95,8 +81,11 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                       );
                     },
                   ),
-                ))
-            .toList(),
+                );
+              }).toList(),
+            ),
+          )
+        ],
       ),
     );
   }

@@ -13,12 +13,6 @@ void nextScreen(context, page, transition) {
       child: page,
     ),
   );
-  // Navigator.push(
-  //   context,
-  //   MaterialPageRoute(
-  //     builder: (context) => page,
-  //   ),
-  // );
 }
 
 void nextScreenReplace(context, page, transition) {
