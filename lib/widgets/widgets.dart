@@ -22,7 +22,7 @@ Widget target(BuildContext context, String title, content, {height}) {
       decoration: decorationBack,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
           child: Text(title, style: Theme.of(context).textTheme.labelMedium),
         ),
         height == null

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 Color primaryColor = const Color.fromARGB(255, 16, 56, 91);
+Color primaryColorDark = const Color.fromARGB(255, 184, 215, 237);
 
 ThemeData lightMode = ThemeData(
   brightness: Brightness.light,
   primaryColor: primaryColor,
+  canvasColor: Colors.white,
   backgroundColor: const Color.fromARGB(255, 216, 229, 253),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
@@ -37,12 +39,17 @@ ThemeData lightMode = ThemeData(
       fontWeight: FontWeight.bold,
       color: Colors.white,
     ),
+    bodyLarge: const TextStyle(
+      fontSize: 28.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
   ),
 );
 
 ThemeData darkMode = ThemeData(
   brightness: Brightness.dark,
-  primaryColor: Colors.white,
+  primaryColor: primaryColorDark,
   backgroundColor: const Color.fromARGB(255, 21, 25, 44),
   canvasColor: const Color.fromARGB(255, 13, 10, 24),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -58,7 +65,7 @@ ThemeData darkMode = ThemeData(
           borderRadius: BorderRadius.circular(24.0),
         ),
       ),
-      backgroundColor: MaterialStateProperty.all(Colors.white),
+      backgroundColor: MaterialStateProperty.all(primaryColorDark),
       foregroundColor: MaterialStateProperty.all(Colors.black),
       overlayColor: MaterialStateProperty.all(Colors.black26),
     ),
@@ -71,12 +78,16 @@ ThemeData darkMode = ThemeData(
     titleLarge: TextStyle(
       fontSize: 24.0,
       fontWeight: FontWeight.bold,
-      // color: Colors.black,
     ),
     labelMedium: TextStyle(
       fontSize: 18.0,
       fontWeight: FontWeight.bold,
       color: Colors.black,
     ),
+    bodyLarge: TextStyle(
+      fontSize: 28.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    )
   ),
 );

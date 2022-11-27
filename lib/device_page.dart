@@ -39,9 +39,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   late List<Widget> listWidgets = [
     target(context, 'Nivel', _widget(broadcastStream, _nivelDeposito)),
-    target(context, 'Otros', _widgetsColumn()),
-    _widget(streamPH, _pH),
-    _widget(streamTurb, _turb),
+    target(context, 'Otros datos', _widgetsColumn()),
+    target(context, 'pH', _widget(streamPH, _pH)),
+    target(context, 'Turbidez', _widget(streamTurb, _turb)),
   ];
 
   @override
@@ -121,8 +121,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     duration: const Duration(milliseconds: 800),
                     height: constraints.maxHeight * factDist,
                     decoration: BoxDecoration(
-                        color:
-                            factDist < 0.2 ? Colors.red : Colors.lightBlue,
+                        color: factDist < 0.2 ? Colors.red : Colors.lightBlue,
                         borderRadius: BorderRadius.circular(1.0)),
                   ),
                 );
@@ -235,65 +234,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
         pH = 'Alcalino';
       }
     }
-    return Container(
-      height: 90.0,
-      decoration: _boxDecoration(context),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          _text('$levelPH', 32.0, FontWeight.bold),
+          _text(pH, 20.0, FontWeight.bold),
+          const SizedBox(height: 16.0),
+          Expanded(child: LayoutBuilder(builder: (context, constraints) {
+            return Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomCenter,
               children: [
-                _text('pH', 18.0, FontWeight.normal),
-                const SizedBox(width: 8.0),
-                _text(pH, 20.0, FontWeight.bold),
+                Container(
+                  width: 20.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25.0),
+                    gradient: const LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.red, Colors.green, Colors.deepPurple],
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.fastOutSlowIn,
+                  bottom: (constraints.maxHeight * (levelPH / 14)) - 5,
+                  child: Container(
+                    height: 15.0,
+                    width: 40.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                )
               ],
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(width: 5.0),
-                Expanded(child: LayoutBuilder(builder: (context, constraints) {
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      Container(
-                        height: 10.0,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25.0),
-                          gradient: const LinearGradient(colors: [
-                            Colors.red,
-                            Colors.green,
-                            Colors.deepPurple
-                          ]),
-                        ),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.fastOutSlowIn,
-                        left: (constraints.maxWidth * (levelPH / 14)) - 5.0,
-                        child: Container(
-                          height: 20.0,
-                          width: 10.0,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5.0),
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    ],
-                  );
-                })),
-                const SizedBox(width: 18.0),
-                SizedBox(
-                    width: 45, child: _text('$levelPH', 20.0, FontWeight.bold)),
-              ],
-            ),
-          ],
-        ),
+            );
+          })),
+        ],
       ),
     );
   }
@@ -316,25 +296,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
         color = Colors.lightBlue;
       }
     }
-    return Container(
-      height: 80.0,
-      decoration: _boxDecoration(context),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _text('Turbidez', 18.0, FontWeight.normal),
-                const SizedBox(height: 5.0),
-                _text(turbidez, 20.0, FontWeight.bold),
-              ],
-            ),
-            const SizedBox(width: 8.0),
-            AnimatedContainer(
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Container(
+            color: Colors.red,
+            height: 60.0,
+            child: Center(child: Text(turbidez, style: Theme.of(context).textTheme.bodyLarge)),
+          ),
+          const SizedBox(height: 16.0),
+          Expanded(
+            child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
               width: 25.0,
               decoration: BoxDecoration(
@@ -342,8 +315,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 color: color,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
