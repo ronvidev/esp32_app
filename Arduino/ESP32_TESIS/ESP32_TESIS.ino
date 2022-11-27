@@ -131,8 +131,8 @@ void setup() {
 }
 
 void loop() {
-  // turb_Value = Serial2.parseFloat();
-  // ph_Value = Serial2.parseFloat();
+  turb_Value = Serial2.parseFloat();
+  ph_Value = Serial2.parseFloat();
   if (deviceConnected) {
     if ((millis() - lastTime) > timerDelay) {
       // Leer distancia del deposito y notificar

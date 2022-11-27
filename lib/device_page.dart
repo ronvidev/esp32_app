@@ -130,7 +130,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
     Color color = Colors.transparent;
     if (stateMotor != '') {
       state = int.parse(stateMotor) == 1 ? true : false;
-      state = true;
       color = state == true ? Colors.lime : Colors.red;
     }
     return MotorTile(state, color);
@@ -146,7 +145,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   Widget _cisterna(distancia) {
     bool thereWater = false;
-    Color color = Colors.red;
+    Color color = Colors.transparent;
     bool isCalculated = false;
     if (distancia != "") {
       if (double.parse(distancia) < 25) {
@@ -161,7 +160,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Widget _turb(turbValue) {
     double turbVolt = 0;
     String turbidez = 'Cargando...';
-    Color color = Colors.white;
+    Color color = Colors.transparent;
     if (turbValue != "") {
       turbVolt = double.parse(turbValue);
       if (turbVolt < 2) {
