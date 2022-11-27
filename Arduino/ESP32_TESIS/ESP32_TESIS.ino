@@ -7,6 +7,7 @@
 //BLE server
 #define bleDeviceName "ESP32"
 #define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
+#define MOTOR_SERVICE_UUID "c345c464-6ea2-11ed-a1eb-0242ac120002"
 
 // Alturas de tanque
 #define ALT_MAX_DEPOSIT 5
@@ -24,6 +25,7 @@ static char distance1Char[5];
 static char distance2Char[5];
 static char phChar[5];
 static char turbChar[5];
+static char motorChar[1];
 
 // Variables de los sensores
 int distDeposit = 0;
@@ -35,6 +37,7 @@ int pinGatillo2 = 14;
 
 double turb_Value = 0;
 double ph_Value = 0;
+int motor = 0;
 
 long readUltrasonicDistance(int triggerPin, int echoPin) {
   pinMode(echoPin, INPUT);
@@ -62,6 +65,10 @@ BLEDescriptor sensorPHDescriptor(BLEUUID((uint16_t)0x2902));
 // pH Characteristic
 BLECharacteristic sensorTurbCharacteristics("cadf63e3-63ea-4626-9667-e2594d0bf4ae", BLECharacteristic::PROPERTY_NOTIFY);
 BLEDescriptor sensorTurbDescriptor(BLEUUID((uint16_t)0x2902));
+
+// Motor Characteristic
+BLECharacteristic motorCharacteristics("d5da51ac-6e99-11ed-a1eb-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+BLEDescriptor motorDescriptor(BLEUUID((uint16_t)0x2902));
 
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks {
@@ -91,6 +98,7 @@ void setup() {
 
   // Create the BLE Service
   BLEService *sensorService = pServer->createService(SERVICE_UUID);
+  BLEService *motorService = pServer->createService(MOTOR_SERVICE_UUID);
 
   // distDeposit Deposito
   sensorService->addCharacteristic(&sr04Distance1Characteristics);
@@ -108,8 +116,13 @@ void setup() {
   sensorService->addCharacteristic(&sensorTurbCharacteristics);
   sensorTurbCharacteristics.addDescriptor(&sensorTurbDescriptor);
 
+  // Motor
+  motorService->addCharacteristic(&motorCharacteristics);
+  motorCharacteristics.addDescriptor(&motorDescriptor);
+
   // Start the service
   sensorService->start();
+  motorService->start();
 
   // Start advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -122,37 +135,43 @@ void loop() {
   // ph_Value = Serial2.parseFloat();
   if (deviceConnected) {
     if ((millis() - lastTime) > timerDelay) {
-      // Leer distancia del deposito
-      // Notify distance 1 reading from HC-SR04
+      // Leer distancia del deposito y notificar
       distDeposit = 0.01723 * readUltrasonicDistance(pinGatillo1, pinEco1);
       dtostrf(distDeposit, 6, 2, distance1Char);
       sr04Distance1Characteristics.setValue(distance1Char);
       sr04Distance1Characteristics.notify();
-      // Set distance 2 Characteristic value and notify
+      // Leer distancia de la cisterna y notificar
       distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
       dtostrf(distCisterna, 6, 2, distance2Char);
       sr04Distance2Characteristics.setValue(distance2Char);
       sr04Distance2Characteristics.notify();
-      // Set ph Characteristic value and notify
+      // Leer ph y notificar
       dtostrf(ph_Value, 3, 2, phChar);
       sensorPHCharacteristics.setValue(phChar);
       sensorPHCharacteristics.notify();
-      // Set turbidez Characteristic value and notify
+      // Leer turbidez and notificar
       dtostrf(turb_Value, 3, 2, turbChar);
       sensorTurbCharacteristics.setValue(turbChar);
       sensorTurbCharacteristics.notify();
       if (distDeposit < 500) {
-        if (distCisterna < ALT_MIN_DEPOSIT) {   // Si la cisterna tiene agua...
-          if (distDeposit < ALT_MAX_DEPOSIT) {  // Si el agua está en el limite superior...
-            digitalWrite(MOTOR, LOW);           // Apagar motor
+        if (distCisterna < ALT_MIN_DEPOSIT) {    // Si la cisterna tiene agua...
+          if (distDeposit < ALT_MAX_DEPOSIT) {   // Si el agua está en el limite superior...
+            digitalWrite(MOTOR, LOW);            // Apagar motor
+            motor = 0;
           }
-          if (distDeposit > ALT_MIN_DEPOSIT) {  // Si el agua está en el limite inferior...
-            digitalWrite(MOTOR, HIGH);          // Enceder motor
+          if (distDeposit > ALT_MIN_DEPOSIT) {   // Si el agua está en el limite inferior...
+            digitalWrite(MOTOR, HIGH);           // Enceder motor
+            motor = 1;
           }
         } else {
-          digitalWrite(MOTOR, LOW);  // Apagar motor+
+          digitalWrite(MOTOR, LOW);  // Apagar motor
+          motor = 0;
         }
       }
+      dtostrf(motor, 1, 0, motorChar);
+      motorCharacteristics.setValue(motorChar);  // Cambiar el valor del motor
+      motorCharacteristics.notify();       // y notificar
+
       lastTime = millis();
     }
   }

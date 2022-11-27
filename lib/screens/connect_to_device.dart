@@ -1,6 +1,6 @@
 import 'package:esp32_app/device_page.dart';
 import 'package:esp32_app/widgets/next_screen.dart';
-import 'package:esp32_app/widgets/widgets.dart';
+import 'package:esp32_app/widgets/target_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:page_transition/page_transition.dart';
@@ -13,7 +13,6 @@ class ConnectToDevice extends StatefulWidget {
 }
 
 class _ConnectToDeviceState extends State<ConnectToDevice> {
-
   @override
   void initState() {
     super.initState();
@@ -41,7 +40,10 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              target(context, 'Conecte su dispositivo', listDevices(), height: 280.0),
+              Target(
+                  title: 'Conecte su dispositivo',
+                  content: listDevices(),
+                  height: 280.0),
             ],
           ),
         ),
@@ -66,8 +68,7 @@ class _ConnectToDeviceState extends State<ConnectToDevice> {
             builder: (c, snapshot) => Column(
               children: snapshot.data!.map((r) {
                 return ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 25.0),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 25.0),
                   title: Text(r.device.name),
                   subtitle: Text(r.device.id.toString()),
                   trailing: ElevatedButton(

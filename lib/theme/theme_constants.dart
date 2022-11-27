@@ -39,10 +39,29 @@ ThemeData lightMode = ThemeData(
       fontWeight: FontWeight.bold,
       color: Colors.white,
     ),
+    labelSmall: const TextStyle(
+      fontSize: 14.0,
+      letterSpacing: 0.6,
+    ),
     bodyLarge: const TextStyle(
-      fontSize: 28.0,
+      fontSize: 32.0,
       fontWeight: FontWeight.bold,
-      color: Colors.white,
+      // color: Colors.white,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 20.0,
+      fontWeight: FontWeight.bold,
+      color: primaryColor,
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 24.0,
+      fontWeight: FontWeight.bold,
+      color: primaryColor,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 16.0,
+      fontWeight: FontWeight.bold,
+      color: primaryColor.withOpacity(0.8),
     ),
   ),
 );
@@ -84,10 +103,29 @@ ThemeData darkMode = ThemeData(
       fontWeight: FontWeight.bold,
       color: Colors.black,
     ),
+    labelSmall: TextStyle(
+      fontSize: 14.0,
+      letterSpacing: 0.6,
+    ),
     bodyLarge: TextStyle(
-      fontSize: 28.0,
+      fontSize: 32.0,
       fontWeight: FontWeight.bold,
       color: Colors.white,
-    )
+    ),
+    bodySmall: TextStyle(
+      fontSize: 20.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 24.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 16.0,
+      fontWeight: FontWeight.bold,
+      color: Colors.white70,
+    ),
   ),
 );
