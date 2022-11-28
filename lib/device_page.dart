@@ -151,6 +151,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
       if (double.parse(distancia) < 25) {
         thereWater = true;
         color = Colors.lightBlue;
+      } else {
+        thereWater = false;
+        color = Colors.red;
       }
       isCalculated = true;
     }
@@ -166,10 +169,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
       if (turbVolt < 2) {
         turbidez = 'Agua muy opaca';
         color = Colors.brown;
-      } else if (turbVolt < 4) {
+      } else if (turbVolt < 3) {
         turbidez = 'Agua opaca';
         color = const Color.fromARGB(255, 29, 171, 171);
-      } else if (turbVolt < 5) {
+      } else if (turbVolt < 4) {
         turbidez = 'Aceptable';
         color = Colors.lightBlueAccent;
       } else {

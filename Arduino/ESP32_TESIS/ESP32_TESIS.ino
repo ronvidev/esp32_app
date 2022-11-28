@@ -82,8 +82,8 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
 void setup() {
   // Start serial communication
-  Serial.begin(115200);
-  Serial2.begin(115200, SERIAL_8N1, 16, 17);
+  // Serial.begin(115200);
+  Serial.begin(115200, SERIAL_8N1, 3, 1);
 
   // Salidad del Motor
   pinMode(MOTOR, OUTPUT);
@@ -131,48 +131,61 @@ void setup() {
 }
 
 void loop() {
-  turb_Value = Serial2.parseFloat();
-  ph_Value = Serial2.parseFloat();
-  if (deviceConnected) {
-    if ((millis() - lastTime) > timerDelay) {
-      // Leer distancia del deposito y notificar
-      distDeposit = 0.01723 * readUltrasonicDistance(pinGatillo1, pinEco1);
-      dtostrf(distDeposit, 6, 2, distance1Char);
-      sr04Distance1Characteristics.setValue(distance1Char);
-      sr04Distance1Characteristics.notify();
-      // Leer distancia de la cisterna y notificar
-      distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
-      dtostrf(distCisterna, 6, 2, distance2Char);
-      sr04Distance2Characteristics.setValue(distance2Char);
-      sr04Distance2Characteristics.notify();
-      // Leer ph y notificar
-      dtostrf(ph_Value, 3, 2, phChar);
-      sensorPHCharacteristics.setValue(phChar);
-      sensorPHCharacteristics.notify();
-      // Leer turbidez and notificar
-      dtostrf(turb_Value, 3, 2, turbChar);
-      sensorTurbCharacteristics.setValue(turbChar);
-      sensorTurbCharacteristics.notify();
-      if (distDeposit < 500) {
-        if (distCisterna < ALT_MIN_DEPOSIT) {    // Si la cisterna tiene agua...
-          if (distDeposit < ALT_MAX_DEPOSIT) {   // Si el agua está en el limite superior...
-            digitalWrite(MOTOR, LOW);            // Apagar motor
-            motor = 0;
-          }
-          if (distDeposit > ALT_MIN_DEPOSIT) {   // Si el agua está en el limite inferior...
-            digitalWrite(MOTOR, HIGH);           // Enceder motor
-            motor = 1;
-          }
-        } else {
-          digitalWrite(MOTOR, LOW);  // Apagar motor
-          motor = 0;
-        }
+  turb_Value = Serial.parseFloat();
+  Serial.println(turb_Value);
+  ph_Value = Serial.parseFloat();
+  Serial.println(ph_Value);
+  if ((millis() - lastTime) > timerDelay) {
+    // Leer distancias
+    distDeposit = 0.01723 * readUltrasonicDistance(pinGatillo1, pinEco1);
+    distCisterna = 0.01723 * readUltrasonicDistance(pinGatillo2, pinEco2);
+    bool validDeposito = (distDeposit >= 3) && (distDeposit < 500);
+    bool validCisterna = (distCisterna >= 3) && (distCisterna < 500);
+    bool validTurb = (turb_Value >= 0) && (turb_Value <= 5);
+    bool validPH = (ph_Value >= 0) && (ph_Value <= 14);
+    if ((distCisterna < ALT_MIN_DEPOSIT) && validCisterna) {   // Si la cisterna tiene agua...
+      if ((distDeposit < ALT_MAX_DEPOSIT) && validDeposito) {  // Si el agua está en el limite superior...
+        digitalWrite(MOTOR, LOW);                              // Apagar motor
+        motor = 0;
       }
-      dtostrf(motor, 1, 0, motorChar);
-      motorCharacteristics.setValue(motorChar);  // Cambiar el valor del motor
-      motorCharacteristics.notify();       // y notificar
-
-      lastTime = millis();
+      if ((distDeposit > ALT_MIN_DEPOSIT) && validDeposito) {  // Si el agua está en el limite inferior...
+        digitalWrite(MOTOR, HIGH);                             // Enceder motor
+        motor = 1;
+      } else {
+        digitalWrite(MOTOR, LOW);  // Apagar motor
+        motor = 0;
+      }
+    } else {
+      digitalWrite(MOTOR, LOW);  // Apagar motor
+      motor = 0;
     }
+    if (deviceConnected) {
+      if (validDeposito) {  // Notificar distancia 1
+        dtostrf(distDeposit, 6, 2, distance1Char);
+        sr04Distance1Characteristics.setValue(distance1Char);
+        sr04Distance1Characteristics.notify();
+      }
+      if (validTurb) {  // Notificar distancia 2
+        dtostrf(distCisterna, 6, 2, distance2Char);
+        sr04Distance2Characteristics.setValue(distance2Char);
+        sr04Distance2Characteristics.notify();
+      }
+      if (validTurb) {  // Notificar valor de Turbidez
+        dtostrf(turb_Value, 3, 2, turbChar);
+        sensorTurbCharacteristics.setValue(turbChar);
+        sensorTurbCharacteristics.notify();
+      }
+      if (validPH) {  // Notificar valor de pH
+        dtostrf(ph_Value, 3, 2, phChar);
+        sensorPHCharacteristics.setValue(phChar);
+        sensorPHCharacteristics.notify();
+      }
+      // Notificar el valor de motor
+      dtostrf(motor, 1, 0, motorChar);
+      motorCharacteristics.setValue(motorChar);
+      motorCharacteristics.notify();
+    }
+
+    lastTime = millis();
   }
 }

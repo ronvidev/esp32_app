@@ -12,7 +12,7 @@ class PHTile extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Text('$levelPH', style: Theme.of(context).textTheme.bodyLarge),
+          Text(levelPH.toStringAsFixed(1), style: Theme.of(context).textTheme.bodyLarge),
           Text(pH, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16.0),
           Expanded(child: LayoutBuilder(builder: (context, constraints) {
